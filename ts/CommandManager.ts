@@ -42,6 +42,7 @@ import "./GetCircuitAsSubcircuit";
 import { Scope } from "./Scope";
 import { ScopeElm } from "./ScopeElm";
 import { parseIntStrict } from "./NumberParse";
+import { dropboxEnabled } from "./BuildFlags";
 
 export class CommandManager {
 
@@ -76,7 +77,7 @@ export class CommandManager {
             CommandManager.electronSaveAs(this.app.dumpCircuit());
         if (item == "importfromtext")
             new ImportFromTextDialog(this.app);
-        if (item == "importfromdropbox")
+        if (item == "importfromdropbox" && dropboxEnabled)
             CirSim.dialogShowing = new (window as any).ImportFromDropboxDialog(this.app);
         if (item == "exportasurl") {
             this.doExportAsUrl();

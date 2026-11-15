@@ -39,6 +39,7 @@ import { ScopeManager } from "./ScopeManager";
 import { ExportAsLocalFileDialog } from "./ExportAsLocalFileDialog";
 import { HookRegistry } from "./HookRegistry";
 import { UndoManager } from "./UndoManager";
+import { dropboxEnabled } from "./BuildFlags";
 
 // GWT Timer equivalent — drives the simulation/render loop via setInterval
 class CirSimTimer {
@@ -292,7 +293,7 @@ export class CirSim {
                 this.setCircuitTitle(electronFileName);
             this.unsavedChanges = false;
         } else {
-            if (this.stopMessage == null && this.startCircuitLink != null) {
+            if (this.stopMessage == null && this.startCircuitLink != null && dropboxEnabled) {
                 this.loader.readCircuit("");
                 this.menus.getSetupList(false);
                 (window as any).ImportFromDropboxDialog?.setSim(this);

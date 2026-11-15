@@ -5,7 +5,7 @@ num=$1
 DIR="$(pwd)"
 
 echo "=== Building TypeScript app ==="
-( cd "$DIR/ts" && npm run build )
+( cd "$DIR/ts" && VITE_SERVICE_WORKER_ENABLED=true npm run build )
 
 rm -rf site
 mkdir site

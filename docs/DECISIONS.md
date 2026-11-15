@@ -8,9 +8,13 @@ The supplied implementation brief describes a Java/GWT build, but this checkout'
 
 `CommandManager.menuPerformed` is already the central command dispatcher, `CircuitJS1` exposes simulator state, and `MouseManager` already maps touch input to mouse events with pinch/pan and long-press support. Extend those mechanisms only where the Quick Bar needs a stable bridge; do not replace canvas input or dispatch layout-provided code.
 
-## 2026-11-15 — Use upstream as a temporary local source
+## 2026-11-15 — Use upstream as the local base
 
-The requested directory was empty and no personal fork URL was available. The official `pfalstad/circuitjs1` repository was cloned and retained as the `upstream` remote on branch `mobile-ui`. No fork was created and no push was attempted. Before deployment work, connect this branch to the user's own GitHub repository.
+The requested directory was empty, so the official `pfalstad/circuitjs1` repository was cloned as the base and retained as the `upstream` remote on branch `mobile-ui`. The user's fork was connected as `origin` after its URL was provided.
+
+## 2026-11-15 — Link the user's public fork as origin
+
+The user supplied `https://github.com/Alfarook-2002/Elect-mobile`, confirmed publicly as a fork of CircuitJS1 with `master` at the same upstream baseline. It is now configured as `origin`; `upstream` remains the official source.
 
 ## 2026-11-15 — Treat existing deployment warnings as baseline, not fixes
 

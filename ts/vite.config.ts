@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vitest/config'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { env } from 'node:process'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
 const mimeTypes: Record<string, string> = {
@@ -54,6 +55,16 @@ function serveWarDir(): Plugin {
 // nothing in the app hardcodes this name.
 const assetsDir = 'circuitjs'
 
+function configureDropbox(): Plugin {
+  return {
+    name: 'configure-dropbox',
+    transformIndexHtml(html) {
+      if (env.VITE_DROPBOX_ENABLED !== 'false') return html
+      return html.replace(/<script\b[^>]*\bid="dropboxjs"[^>]*>[\s\S]*?<\/script>/i, '')
+    }
+  }
+}
+
 // After the normal build, copies circuits/, locale/, images/, setuplist.txt,
 // and font/ (the last one nested under ts/public/circuitjs/ already, since
 // it's referenced via hardcoded "circuitjs/font/..." hrefs in circuitjs.html
@@ -82,7 +93,7 @@ function copyPublicAssets(): Plugin {
 
 export default defineConfig({
   base: './',
-  plugins: [serveWarDir(), copyPublicAssets()],
+  plugins: [configureDropbox(), serveWarDir(), copyPublicAssets()],
   server: {
     port: 5173,
     host: true,

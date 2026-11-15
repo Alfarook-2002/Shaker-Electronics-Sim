@@ -20,6 +20,7 @@
 import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
 import { CommandPaletteHistory } from "./CommandPaletteHistory";
+import { dropboxEnabled } from "./BuildFlags";
 
 export interface PaletteCommandInit {
     id: string;          // stable key for history, e.g. "edit:undo" or "circuits:555.txt"
@@ -124,7 +125,8 @@ export class CommandPaletteRegistry {
         const cm = m.ctrlMetaKey;
         CommandPaletteRegistry.add("file:newblankcircuit", "New Blank Circuit", "File", "new blank", "file", "newblankcircuit");
         CommandPaletteRegistry.add("file:importfromtext", "Import From Text...", "File", "import text", "file", "importfromtext");
-        CommandPaletteRegistry.add("file:importfromdropbox", "Import From Dropbox...", "File", "import dropbox", "file", "importfromdropbox");
+        if (dropboxEnabled)
+            CommandPaletteRegistry.add("file:importfromdropbox", "Import From Dropbox...", "File", "import dropbox", "file", "importfromdropbox");
         if (CirSim.isElectron()) {
             CommandPaletteRegistry.add("file:save", "Save", "File", "save " + cm + "S", "file", "save");
             CommandPaletteRegistry.add("file:saveas", "Save As...", "File", "save export", "file", "saveas");

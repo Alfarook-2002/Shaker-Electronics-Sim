@@ -18,6 +18,7 @@
 */
 
 import { CirSim } from "./CirSim";
+import { dropboxEnabled } from "./BuildFlags";
 
 export class ImportFromDropbox {
     static sim: CirSim;
@@ -28,6 +29,8 @@ export class ImportFromDropbox {
     }
 
     static isSupported(): boolean {
+        if (!dropboxEnabled)
+            return false;
         try {
             // Bug in firefox prevents Dropbox dialog working properly in this application
             // even though Dropbox chooser supports firefox

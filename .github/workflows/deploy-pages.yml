@@ -2,12 +2,12 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ dev-ts ]   # ← Only trigger on pushes to dev-ts
+    branches: [ master, mobile-ui ]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
@@ -16,14 +16,16 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: ts/package-lock.json
 
@@ -42,6 +44,13 @@ jobs:
 
       - name: Build site
         run: ./dist-offline.sh
+        env:
+          VITE_DROPBOX_ENABLED: 'false'
+          VITE_SHORT_RELAY_SUPPORTED: 'false'
+          VITE_SERVICE_WORKER_ENABLED: 'false'
+
+      - name: Finalize static site
+        run: bash ./scripts/finalize-site.sh release
 
       # site/ has no index.html of its own (the app's entry point is
       # circuitjs.html), so GitHub Pages 404s at the site root without this.
@@ -66,15 +75,18 @@ jobs:
           EOF
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Upload site artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ./site
 
   deploy:
     needs: build
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -82,4 +94,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

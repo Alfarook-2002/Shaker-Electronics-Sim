@@ -23,6 +23,7 @@ import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
 import { CommandPaletteRegistry } from "./CommandPaletteRegistry";
 import { moduleBaseURL } from "./ModuleBase";
+import { dropboxEnabled } from "./BuildFlags";
 
 // ---- State classes used by UIManager ----
 
@@ -351,8 +352,9 @@ export class Menus {
 
         fileMenu.addMenuItem(this.importFromTextItem,
             iconHtml("doc-text", "Import From Text..."), "file", "importfromtext");
-        fileMenu.addMenuItem(this.importFromDropboxItem,
-            iconHtml("dropbox", "Import From Dropbox..."), "file", "importfromdropbox");
+        if (dropboxEnabled)
+            fileMenu.addMenuItem(this.importFromDropboxItem,
+                iconHtml("dropbox", "Import From Dropbox..."), "file", "importfromdropbox");
 
         if (this.isElectron()) {
             fileMenu.addMenuItem(this.saveFileItem,

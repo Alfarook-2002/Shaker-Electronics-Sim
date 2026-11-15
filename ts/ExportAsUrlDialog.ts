@@ -20,10 +20,11 @@
 import { Dialog } from "./Dialog";
 import { CirSim } from "./CirSim";
 import { Locale } from "./Locale";
+import { shortRelaySupported as hasShortRelaySupport } from "./BuildFlags";
 
 export class ExportAsUrlDialog extends Dialog {
     // set to false at build/deploy time if the target server doesn't have shortrelay.php
-    static readonly shortRelaySupported = true;
+    static readonly shortRelaySupported = hasShortRelaySupport;
 
     textArea: HTMLTextAreaElement;
 

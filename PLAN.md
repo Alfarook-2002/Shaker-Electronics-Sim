@@ -3,7 +3,7 @@
 ## Phase 0 findings
 
 - Baseline source: official `pfalstad/circuitjs1`, commit `8ac55f22` (`upstream/master`).
-- Working branch: `mobile-ui`. This checkout is based on upstream, not on a personal fork; no GitHub account or fork URL was provided.
+- Working branch: `mobile-ui`. The user's public fork `Alfarook-2002/Elect-mobile` is configured as `origin`; official `pfalstad/circuitjs1` remains `upstream`.
 - The active application is TypeScript + Vite under `ts/`. `README.md` documents `npm ci`, `npm test`, and `npm run build`. The checked-in `gradle/wrapper/gradle-wrapper.properties` pins Gradle 8.7, but there is no `build.gradle`; the Gradle wrapper is not the active web-app build.
 - The primary build input is `ts/circuitjs.html`; `war/circuitjs.html` is the older GWT entry point. `.github/workflows/build.yml` and `deploy-pages.yml` currently target `dev-ts`.
 - Existing UI entry points and command handling are in `ts/UIManager.ts`, `ts/Menus.ts`, `ts/Toolbar.ts`, `ts/CommandManager.ts`, and `ts/JSInterface.ts`.
@@ -36,12 +36,21 @@ Baseline build warnings: Vite could not resolve the legacy `circuitjs/font/fonte
 
 ## Risks and gates
 
-- **Repository ownership:** Pages deployment, release creation, and pushing cannot be completed until the user creates a public GitHub fork/repository and supplies its URL or connects authentication in GitHub's normal UI. Never push to `upstream`.
+- **Repository access:** The public fork is readable, but authenticated push/Actions access has not been verified. Never push to `upstream`; do not force-push.
 - **Platform:** WSL is installed as a Windows feature but cannot currently start. Git for Windows is installed for local work; Git Bash can run the existing shell build script. Do not claim WSL-based validation.
 - **Legacy versus active entry point:** `war/circuitjs.html` and the Gradle wrapper remain in the tree, but the verified production app is Vite-built from `ts/circuitjs.html`. Recheck static asset paths under the GitHub Pages repository sub-path.
 - **Responsive baseline:** mobile support exists, but the existing breakpoint is 600 px, the stock toolbar is clipped on narrow screens, and the stock UI has small non-semantic toolbar controls. Sidebar and branding behavior need explicit touch testing.
 - **Network baseline:** the production HTML includes a Dropbox-hosted script. Remove/disable that path for the requested no-cross-origin deployment; do not copy any compiled files from falstad.com.
 - **Touch picking:** current code has handle-grab thresholds, but no coarse-pointer-specific threshold was found in the initial search. Inspect the element hit-test path before deciding whether Java/TypeScript changes are necessary.
-- **Commit identity:** no local Git `user.name` or `user.email` is configured. Do not invent the user's identity; configure a Copilot-only commit identity for local phase commits or ask the user before committing if that is not acceptable.
+- **Commit identity:** no local Git `user.name` or `user.email` is configured. Local phase commits use a command-scoped Copilot identity and the required co-author trailer; no global identity was changed.
+
+## Phase 1 progress
+
+- The user supplied a public fork URL; `origin` points to it and `upstream` remains the official source.
+- GitHub Docs currently list GitHub Pages for public repositories on GitHub Free personal accounts and standard GitHub-hosted Actions usage as free for public repositories. Official action releases were checked on 2026-11-15 and pinned by commit SHA in the workflows.
+- The Pages workflow now uses the Vite build and targets the `master` default branch. The `mobile-ui` branch is also a deployment trigger for initial live verification; the existing `dev-ts` build workflow remains supported.
+- Pages-specific build flags disable Dropbox, the PHP short-URL relay, and service-worker registration; desktop/default builds retain their prior Dropbox/short-relay behavior. The manifest link is removed from the active entry because its current absolute path is missing and the installable-app phase is optional.
+- Local Phase 1 checks pass: `npm test` (7 files, 68 tests), the Pages-flavored `dist-offline.sh` build, the default TypeScript/Vite build, and the release finalizer. The generated Pages HTML omits the Dropbox CDN script and manifest; browser validation under `/Elect-mobile/` confirmed the example circuit runs at 390×844 and 844×390 with no horizontal overflow, failed requests, or external resource requests.
+- The live GitHub Pages gate is still pending: the branch has not yet been pushed and the deployed URL has not yet been tested.
 
 Phase 0 is complete when this plan, `docs/STOCK-UI-INVENTORY.md`, and `docs/DECISIONS.md` are present alongside the passing baseline evidence above.
