@@ -181,7 +181,7 @@ export class CirSim {
     static aboutBox: any = null;
     static commandPalette: any = null; // non-null while the command palette popup is open
 
-    static readonly baseTitle: string = "Circuit Simulator";
+    static readonly baseTitle: string = "Shaker circuit simulator";
     static readonly versionString: string = "5.0.4ts";
 
     // maps integer dump type code → class name (built by register())
