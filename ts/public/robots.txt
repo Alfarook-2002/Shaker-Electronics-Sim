@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://alfarook-2002.github.io/Elect-mobile/sitemap.xml

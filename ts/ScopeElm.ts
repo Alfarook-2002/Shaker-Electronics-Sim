@@ -26,6 +26,8 @@ import { CircuitXMLDeserializer } from "./CircuitXMLDeserializer";
 
 export class ScopeElm extends CircuitElm {
 
+    private static dockIcon: HTMLImageElement | null = null;
+
     declare elmScope: Scope;
 
     constructor(xx: number, yy: number);
@@ -87,6 +89,80 @@ export class ScopeElm extends CircuitElm {
         this.elmScope = null!;
     }
 
+    override isCloseButtonAt(x: number, y: number): boolean {
+        const rect = this.getCloseButtonRect();
+        return rect !== null && rect.contains(x, y);
+    }
+
+    override isDockButtonAt(x: number, y: number): boolean {
+        const rect = this.getDockButtonRect();
+        return rect !== null && rect.contains(x, y);
+    }
+
+    private getCloseButtonRect(): Rectangle | null {
+        const scopeRect = this.elmScope?.rect;
+        if (scopeRect == null || scopeRect.width < 24 || scopeRect.height < 24)
+            return null;
+        return new Rectangle(scopeRect.x + scopeRect.width - 24, scopeRect.y + 4, 20, 20);
+    }
+
+    private getDockButtonRect(): Rectangle | null {
+        const scopeRect = this.elmScope?.rect;
+        if (scopeRect == null || scopeRect.width < 24 || scopeRect.height < 48)
+            return null;
+        return new Rectangle(scopeRect.x + scopeRect.width - 24, scopeRect.y + scopeRect.height - 24, 20, 20);
+    }
+
+    private getButtonAlpha(): number {
+        return Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--alpha_button"));
+    }
+
+    private drawCloseButton(g: Graphics): void {
+        const rect = this.getCloseButtonRect();
+        if (rect === null)
+            return;
+
+        const ctx = g.context;
+        ctx.save();
+        ctx.globalAlpha = this.getButtonAlpha();
+        ctx.fillStyle = "rgba(35, 35, 35, 0.82)";
+        ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+        ctx.strokeStyle = "#e3e3e3";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(rect.x + 6, rect.y + 6);
+        ctx.lineTo(rect.x + 14, rect.y + 14);
+        ctx.moveTo(rect.x + 14, rect.y + 6);
+        ctx.lineTo(rect.x + 6, rect.y + 14);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    private drawDockButton(g: Graphics): void {
+        const rect = this.getDockButtonRect();
+        if (rect === null)
+            return;
+
+        const ctx = g.context;
+        ctx.save();
+        ctx.globalAlpha = this.getButtonAlpha();
+        ctx.fillStyle = "rgba(35, 35, 35, 0.82)";
+        ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+        if (ScopeElm.dockIcon === null) {
+            const icon = document.createElement("img");
+            icon.alt = "";
+            icon.draggable = false;
+            icon.addEventListener("load", () => CircuitElm.app.repaint());
+            icon.addEventListener("error", () => console.error(`Could not load dock-scope icon: ${icon.src}`));
+            icon.src = "./mobile/icons/dock.svg";
+            ScopeElm.dockIcon = icon;
+        }
+        if (ScopeElm.dockIcon.complete && ScopeElm.dockIcon.naturalWidth > 0)
+            ctx.drawImage(ScopeElm.dockIcon, rect.x, rect.y, rect.width, rect.height);
+        ctx.restore();
+    }
+
     canViewInScope(): boolean { return false; }
 
     getDumpType(): number { return 403; }
@@ -118,6 +194,10 @@ export class ScopeElm extends CircuitElm {
         this.setScopeRect();
         this.elmScope.position = -1;
         this.elmScope.draw(g);
+        if (!this.elmScope.exporting) {
+            this.drawCloseButton(g);
+            this.drawDockButton(g);
+        }
         g.context.restore();
         this.setBbox(this.point1, this.point2, 0);
         this.drawPosts(g);

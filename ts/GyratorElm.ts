@@ -217,8 +217,8 @@ export class GyratorElm extends CircuitElm {
     getInfo(arr: string[]): void {
         arr[0] = "gyrator";
         arr[1] = "R = " + CircuitElm.getUnitText(this.gyrResistance, "Ω");
-        arr[2] = "Vd1 = " + CircuitElm.getVoltageText(this.nodes[0].v - this.nodes[2].v);
-        arr[3] = "Vd2 = " + CircuitElm.getVoltageText(this.nodes[1].v - this.nodes[3].v);
+        arr[2] = "V1 = " + CircuitElm.getVoltageText(this.nodes[0].v - this.nodes[2].v);
+        arr[3] = "V2 = " + CircuitElm.getVoltageText(this.nodes[1].v - this.nodes[3].v);
         arr[4] = "I1 = " + CircuitElm.getCurrentText(this.currents[0]);
         arr[5] = "I2 = " + CircuitElm.getCurrentText(this.currents[1]);
     }

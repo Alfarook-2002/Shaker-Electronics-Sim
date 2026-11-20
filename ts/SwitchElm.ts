@@ -227,7 +227,7 @@ export class SwitchElm extends CircuitElm {
         arr[0] = this.momentary ? "push switch (SPST)" : "switch (SPST)";
         if (this.position === 1) {
             arr[1] = "open";
-            arr[2] = "Vd = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
+            arr[2] = "V = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
         } else {
             arr[1] = "closed";
             arr[2] = "V = " + CircuitElm.getVoltageText(this.nodes[0].v);

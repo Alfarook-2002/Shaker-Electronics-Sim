@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "actions": [
+    "undo",
+    "redo",
+    "select",
+    "wire",
+    "resistor",
+    "ground",
+    "capacitor",
+    "zoomIn",
+    "zoomOut"
+  ]
+}

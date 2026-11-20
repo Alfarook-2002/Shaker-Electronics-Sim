@@ -125,6 +125,7 @@ export class ScopeManager {
         let colh = 0;
         let row = 0;
         let speed = 0;
+        const scopeTop = this.sim.isMobile(ui.sidePanelCheckboxLabel) ? 0 : ui.canvasHeight - h;
         for (i = 0; i !== this.scopeCount; i++) {
             const s = this.scopes[i];
             if (s.position > pos) {
@@ -137,7 +138,7 @@ export class ScopeManager {
                 s.speed = speed;
                 s.resetGraph();
             }
-            const r = new Rectangle(pos * w, ui.canvasHeight - h + colh * row, w - marg, colh);
+            const r = new Rectangle(pos * w, scopeTop + colh * row, w - marg, colh);
             row++;
             if (!r.equals(s.rect))
                 s.setRect(r);
@@ -298,6 +299,29 @@ export class ScopeManager {
 
     clearScopes(): void {
         this.scopeCount = 0;
+    }
+
+    clearAllScopes(): void {
+        this.clearScopes();
+        this.scopes = new Array(20);
+        this.scopeSelected = -1;
+        this.scopeMenuSelected = -1;
+        this.menuScope = -1;
+        this.menuPlot = -1;
+        this.oldScopeCount = -1;
+        Scope.cursorScope = null;
+        Scope.cursorTime = -1;
+        Scope.draggingPlotYScope = null;
+        Scope.dragStartTime = -1;
+
+        for (let i = this.sim.elmList.length - 1; i >= 0; i--) {
+            const elm = this.sim.elmList[i] as CircuitElm;
+            if (elm.isScopeElm()) {
+                elm.delete();
+                this.sim.elmList.splice(i, 1);
+            }
+        }
+        this.sim.needAnalyze();
     }
 
     resetGraphs(): void {

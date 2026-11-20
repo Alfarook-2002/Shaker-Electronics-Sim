@@ -83,7 +83,52 @@ export class MenuItem {
 // ---- Internal menu-building helpers ----
 
 function closeAllMenus(): void {
-    document.querySelectorAll('.gwt-MenuItem.open, .topMenuItem.open, li.hasSubmenu.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.gwt-MenuItem.open, .topMenuItem.open, li.hasSubmenu.open').forEach(el => {
+        el.classList.remove('open');
+        if (el instanceof HTMLElement && el.hasAttribute('aria-expanded'))
+            el.setAttribute('aria-expanded', 'false');
+    });
+}
+
+function guardTouchScrollClick(element: HTMLElement): (event: Event) => boolean {
+    let startX = 0;
+    let startY = 0;
+    let touchMoved = false;
+    let ignoreClickUntil = 0;
+
+    element.addEventListener('touchstart', e => {
+        e.stopPropagation();
+        ignoreClickUntil = 0;
+        if (e.touches.length !== 1) {
+            touchMoved = true;
+            return;
+        }
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        touchMoved = false;
+    }, { passive: true });
+    element.addEventListener('touchmove', e => {
+        const touch = e.touches[0];
+        if (touch && (Math.abs(touch.clientX - startX) > 8 || Math.abs(touch.clientY - startY) > 8))
+            touchMoved = true;
+    }, { passive: true });
+    element.addEventListener('touchend', () => {
+        if (touchMoved)
+            ignoreClickUntil = Date.now() + 350;
+    }, { passive: true });
+    element.addEventListener('touchcancel', () => {
+        touchMoved = false;
+        ignoreClickUntil = 0;
+    }, { passive: true });
+
+    return event => {
+        if (Date.now() > ignoreClickUntil)
+            return false;
+        event.preventDefault();
+        event.stopPropagation();
+        ignoreClickUntil = 0;
+        return true;
+    };
 }
 
 function anyMenuOpen(): boolean {
@@ -133,11 +178,12 @@ class Menu {
     }
 
     // Add a command item and wire it to a MenuItem state object.
-    addMenuItem(item: MenuItem, html: string, menuName: string, cmdName: string): void {
+    addMenuItem(item: MenuItem, html: string, menuName: string, cmdName: string): HTMLLIElement {
         const li = this.addCommand(html, menuName, cmdName);
         item._li = li;
         item.setEnabled(item.isEnabled());
         item.setScheduledCommand({ execute: () => this.app.commands.menuPerformed(menuName, cmdName) });
+        return li;
     }
 
     // Add a CheckItem (toggles on click, shows checkmark).
@@ -180,29 +226,50 @@ class Menu {
     // tap can register as hover without a click ever firing, or leave the hover state stuck
     // since there's no mouseout when the finger lifts. Track visibility explicitly instead.
     addSubmenu(html: string, sub: Menu): HTMLLIElement {
-        const li = this.makeLi(html + '<span class="submenuArrow">&#9658;</span>');
+        const li = this.makeLi(html + '<span class="submenuArrow" aria-hidden="true"></span>');
         li.classList.add('hasSubmenu');
+        li.setAttribute('role', 'menuitem');
+        li.setAttribute('aria-haspopup', 'true');
+        li.setAttribute('aria-expanded', 'false');
         li.appendChild(sub.ul);
         this.ul.appendChild(li);
 
         const openThis = () => {
-            for (const sib of Array.from(this.ul.children))
-                if (sib !== li) sib.classList.remove('open');
+            for (const sib of Array.from(this.ul.children)) {
+                if (sib === li)
+                    continue;
+                sib.classList.remove('open');
+                if (sib instanceof HTMLElement && sib.hasAttribute('aria-expanded'))
+                    sib.setAttribute('aria-expanded', 'false');
+            }
             li.classList.add('open');
+            li.setAttribute('aria-expanded', 'true');
         };
-        li.addEventListener('mouseover', e => { e.stopPropagation(); openThis(); });
-        // stopPropagation here (and on the click below) keeps the document-level "tap
-        // elsewhere closes everything" handler from firing on the very tap that opened
-        // this submenu -- it should only close on a *later* tap outside the menu.
-        li.addEventListener('touchstart', e => { e.stopPropagation(); openThis(); }, { passive: true });
-        li.addEventListener('click', e => e.stopPropagation());
+        const ignoreTouchScrollClick = guardTouchScrollClick(li);
+        li.addEventListener('mouseover', e => {
+            e.stopPropagation();
+            if (window.matchMedia('(hover: hover) and (pointer: fine)').matches)
+                openThis();
+        });
+        li.addEventListener('click', e => {
+            if (ignoreTouchScrollClick(e))
+                return;
+            e.stopPropagation();
+            if (li.classList.contains('open')) {
+                li.classList.remove('open');
+                li.setAttribute('aria-expanded', 'false');
+            } else {
+                openThis();
+            }
+        });
         return li;
     }
 
-    addSeparator(): void {
+    addSeparator(): HTMLLIElement {
         const sep = document.createElement('li');
         sep.className = 'menuSeparator';
         this.ul.appendChild(sep);
+        return sep;
     }
 
     // Clear all items — used when rebuilding the dynamic Subcircuits submenu.
@@ -251,6 +318,9 @@ export class Menus {
     unstackAllItem           = new MenuItem();
     combineAllItem           = new MenuItem();
     separateAllItem          = new MenuItem();
+    clearAllScopesItem       = new MenuItem();
+    scopeViewInScopeItem     = new MenuItem();
+    scopeViewInFloatScopeItem = new MenuItem();
     elmEditMenuItem          = new MenuItem();
     elmCutMenuItem           = new MenuItem();
     elmCopyMenuItem          = new MenuItem();
@@ -344,8 +414,6 @@ export class Menus {
         if (this.isElectron())
             fileMenu.addCommand(shortcutHtml("window", "New Window...", Locale.LS(ck + "N")), "file", "newwindow");
 
-        fileMenu.addCommand(iconHtml("doc-new", "New Blank Circuit"), "file", "newblankcircuit");
-
         fileMenu.addMenuItem(this.importFromLocalFileItem,
             shortcutHtml("folder", "Open File...", Locale.LS(ck + "O")), "file", "importfromlocalfile");
         this.importFromLocalFileItem.setEnabled(typeof FileReader !== 'undefined');
@@ -386,25 +454,33 @@ export class Menus {
 
         // ---- Edit menu ----
         const editMenu = new Menu(this.app);
-        editMenu.addMenuItem(this.undoItem,      shortcutHtml("reply",      "Undo",       Locale.LS(ck + "Z")), "edit", "undo");
-        editMenu.addMenuItem(this.redoItem,      shortcutHtml("forward",    "Redo",       Locale.LS(ck + "Y")), "edit", "redo");
+        editMenu.ul.classList.add("editMenuDropdown");
+        const addEditButton = (item: MenuItem | null, icon: string, label: string,
+                               menuName: string, cmdName: string): HTMLLIElement => {
+            const html = icon.endsWith(".svg")
+                ? `<img src="${icon}" alt="" aria-hidden="true">`
+                : `<i class="cirjsicon-${icon}" aria-hidden="true"></i>`;
+            const li = item
+                ? editMenu.addMenuItem(item, html, menuName, cmdName)
+                : editMenu.addCommand(html, menuName, cmdName);
+            li.classList.add("editMenuButton");
+            li.setAttribute("role", "menuitem");
+            li.setAttribute("aria-label", Locale.LS(label));
+            li.title = Locale.LS(label);
+            return li;
+        };
+        addEditButton(this.cutItem, "scissors", "Cut", "edit", "cut");
+        addEditButton(this.copyItem, "copy", "Copy", "edit", "copy");
+        addEditButton(this.pasteItem, "paste", "Paste", "edit", "paste");
+        addEditButton(null, "clone", "Duplicate", "edit", "duplicate");
+        editMenu.addSeparator().classList.add("editMenuVerticalSeparator");
+        addEditButton(this.selectAllItem, "./mobile/icons/select-all.svg", "Select All", "edit", "selectAll")
+            .classList.add("editMenuButton--selectAll");
         editMenu.addSeparator();
-        editMenu.addMenuItem(this.cutItem,       shortcutHtml("scissors",   "Cut",        Locale.LS(ck + "X")), "edit", "cut");
-        editMenu.addMenuItem(this.copyItem,      shortcutHtml("copy",       "Copy",       Locale.LS(ck + "C")), "edit", "copy");
-        editMenu.addMenuItem(this.pasteItem,     shortcutHtml("paste",      "Paste",      Locale.LS(ck + "V")), "edit", "paste");
-        editMenu.addCommand( shortcutHtml("clone",      "Duplicate",   Locale.LS(ck + "D")), "edit", "duplicate");
-        editMenu.addSeparator();
-        editMenu.addMenuItem(this.selectAllItem, shortcutHtml("select-all", "Select All", Locale.LS(ck + "A")), "edit", "selectAll");
-        editMenu.addSeparator();
-        editMenu.addCommand(shortcutHtml("search", "Find Component/Command...", "/"),          "edit", "search");
-        editMenu.addCommand(iconHtml("target", Locale.weAreInUS(false) ? "Center Circuit" : "Centre Circuit"), "edit", "centercircuit");
-        editMenu.addCommand(shortcutHtml("zoom-11",  "Zoom 100%", "0"), "zoom", "zoom100");
-        editMenu.addCommand(shortcutHtml("zoom-in",  "Zoom In",   "+"), "zoom", "zoomin");
-        editMenu.addCommand(shortcutHtml("zoom-out", "Zoom Out",  "-"), "zoom", "zoomout");
-        editMenu.addMenuItem(this.mirrorXItem,    iconHtml("flip-x", "Mirror X"),    "edit", "mirrorX");
-        editMenu.addMenuItem(this.mirrorYItem,    iconHtml("flip-y", "Mirror Y"),    "edit", "mirrorY");
-        editMenu.addMenuItem(this.rotateCCWItem,  iconHtml("ccw",    "Rotate CCW"),  "edit", "rotateCCW");
-        editMenu.addMenuItem(this.rotateCWItem,   iconHtml("cw",     "Rotate CW"),   "edit", "rotateCW");
+        addEditButton(null, "zoom-in", "Zoom In", "zoom", "zoomin");
+        addEditButton(null, "zoom-out", "Zoom Out", "zoom", "zoomout");
+        addEditButton(this.mirrorXItem, "flip-x", "Mirror X", "edit", "mirrorX");
+        addEditButton(this.mirrorYItem, "flip-y", "Mirror Y", "edit", "mirrorY");
 
         // ---- Draw menu + right-click popup (same content, built twice) ----
         const drawMenu = new Menu(this.app);
@@ -420,6 +496,12 @@ export class Menus {
         scopesMenu.addMenuItem(this.unstackAllItem,  iconHtml("columns",        "Unstack All"),  "scopes", "unstackAll");
         scopesMenu.addMenuItem(this.combineAllItem,  iconHtml("object-group",   "Combine All"),  "scopes", "combineAll");
         scopesMenu.addMenuItem(this.separateAllItem, iconHtml("object-ungroup", "Separate All"), "scopes", "separateAll");
+        scopesMenu.addSeparator();
+        scopesMenu.addMenuItem(this.scopeViewInScopeItem, Locale.LS("View in New Scope"), "scopes", "viewInScope");
+        scopesMenu.addMenuItem(this.scopeViewInFloatScopeItem, Locale.LS("View in New Undocked Scope"), "scopes", "viewInFloatScope");
+        scopesMenu.addSeparator();
+        scopesMenu.addMenuItem(this.clearAllScopesItem, Locale.LS("Clear All Scopes"), "scopes", "clearAllScopes");
+        this.clearAllScopesItem.setEnabled(false);
 
         // ---- Options menu ----
         const optMenu = new Menu(this.app);
@@ -438,12 +520,9 @@ export class Menus {
         //optMenu.addCheckItem(this.conductanceCheckItem, "Show Conductance");
         optMenu.addCheckItem(this.smallGridCheckItem, "Small Grid");
         this.smallGridCheckItem.setCommand({ execute: () => this.app.setGrid() });
-        optMenu.addCheckItem(this.toolbarCheckItem, "Toolbar");
         this.toolbarCheckItem.setCommand({ execute: () => this.app.ui?.setToolbar() });
-        optMenu.addCheckItem(this.crossHairCheckItem, "Show Cursor Cross Hairs");
         this.crossHairCheckItem.setCommand({ execute: () =>
             this.app.ui?.setOptionInStorage("crossHair", this.crossHairCheckItem.getState()) });
-        optMenu.addCheckItem(this.euroResistorCheckItem, "European Resistors");
         optMenu.addCheckItem(this.showOhmCheckItem, "Show Ω Unit");
         optMenu.addCheckItem(this.euroGatesCheckItem, "IEC Gates");
         optMenu.addCheckItem(this.printableCheckItem, "White Background");
@@ -452,16 +531,9 @@ export class Menus {
         optMenu.addCheckItem(this.mouseWheelEditCheckItem, "Edit Values With Mouse Wheel");
         this.mouseWheelEditCheckItem.setCommand({ execute: () =>
             this.app.ui?.setOptionInStorage("mouseWheelEdit", this.mouseWheelEditCheckItem.getState()) });
-        optMenu.addCommand(subheadHtml + Locale.LS("Shortcuts..."),    "options", "shortcuts");
         optMenu.addMenuItem(this.optionsItem, subheadHtml + Locale.LS("Other Options..."), "options", "other");
         if (this.isElectron())
             optMenu.addCommand(subheadHtml + Locale.LS("Toggle Dev Tools"), "options", "devtools");
-
-        // ---- Tools menu ----
-        const toolsMenu = new Menu(this.app);
-        toolsMenu.addCommand(Locale.LS("Convert Wires to Routed Wires"), "tools", "convertWires");
-        toolsMenu.addCommand(Locale.LS("Subcircuit Manager"),            "tools", "subcircuits");
-        // if (TestCreator.enabled) toolsMenu.addCommand(Locale.LS("Create Test"), "tools", "createTest");
 
         // ---- Assemble horizontal bar ----
         this.addTopItem(this.menuBarRow, Locale.LS("File"),    fileMenu);
@@ -469,7 +541,6 @@ export class Menus {
         this.addTopItem(this.menuBarRow, Locale.LS("Draw"),    drawMenu);
         this.addTopItem(this.menuBarRow, Locale.LS("Scopes"),  scopesMenu);
         this.addTopItem(this.menuBarRow, Locale.LS("Options"), optMenu);
-        this.addTopItem(this.menuBarRow, Locale.LS("Tools"),   toolsMenu);
 
         // ---- Element right-click context menu ----
         this.buildElmMenuBar();
@@ -488,11 +559,13 @@ export class Menus {
 
     // this is called twice, once for the Draw menu, once for the right mouse popup menu
     composeMainMenu(menu: Menu, num: number): void {
-        this.makeClassCheckItems(menu, [
-            "Add Wire",         "WireElm",
-            "Add Routed Wire",  "RoutedWireElm",
-            "Add Resistor",     "ResistorElm",
-        ]);
+        if (num === 0) {
+            this.makeClassCheckItems(menu, [
+                "Add Wire",         "WireElm",
+                "Add Routed Wire",  "RoutedWireElm",
+                "Add Resistor",     "ResistorElm",
+            ]);
+        }
 
         const passMenu = new Menu(this.app);
         this.makeClassCheckItems(passMenu, [
@@ -579,6 +652,9 @@ export class Menus {
         const activeMenu = new Menu(this.app);
         this.makeClassCheckItems(activeMenu, [
             "Add Diode",                          "DiodeElm",
+            "Add Ideal Diode",                    "IdealDiodeElm",
+            "Add Si Diode",                       "SiDiodeElm",
+            "Add Ge Diode",                       "GeDiodeElm",
             "Add Zener Diode",                    "ZenerElm",
             "Add Transistor (bipolar, NPN)",      "NTransistorElm",
             "Add Transistor (bipolar, PNP)",      "PTransistorElm",
@@ -636,10 +712,8 @@ export class Menus {
             "Add Logic Input",  "LogicInputElm",
             "Add Logic Output", "LogicOutputElm",
             "Add Bus Input",    "BusLogicInputElm",
-            "Add Inverter",     "InverterElm",
             "Add NAND Gate",    "NandGateElm",
             "Add NOR Gate",     "NorGateElm",
-            "Add AND Gate",     "AndGateElm",
             "Add OR Gate",      "OrGateElm",
             "Add XOR Gate",     "XorGateElm",
             "Add XNOR Gate",    "XnorGateElm",
@@ -685,18 +759,6 @@ export class Menus {
 
         menu.addSubmenu(subheadHtml + Locale.LS("Subcircuits"), this.subcircuitMenuBar![num]);
 
-        const otherMenu = new Menu(this.app);
-        let mi: any;
-        mi = this.getClassCheckItem(Locale.LS("Drag All"),    "DragAll");    mi.setShortcut(Locale.LS("(Alt-drag)"));      otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Row"),    "DragRow");    mi.setShortcut(Locale.LS("(A-S-drag)"));      otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Column"), "DragColumn"); mi.setShortcut(this.isMac ? Locale.LS("(A-Cmd-drag)") : Locale.LS("(A-M-drag)")); otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Selected"), "DragSelected"); otherMenu.addCheckboxItem(mi);
-        mi = this.getClassCheckItem(Locale.LS("Drag Post"),   "DragPost");   mi.setShortcut("(" + this.ctrlMetaKey + "drag)"); otherMenu.addCheckboxItem(mi);
-        menu.addSubmenu(subheadHtml + Locale.LS("Drag"), otherMenu);
-
-        mi = this.getClassCheckItem(Locale.LS("Select/Drag Sel"), "Select");
-        mi.setShortcut(Locale.LS("(space or Shift-drag)"));
-        menu.addCheckboxItem(mi);
     }
 
     makeClassCheckItems(menu: Menu, items: string[]): void {
@@ -731,7 +793,6 @@ export class Menus {
         const stack: Menu[] = [];
         const submenuStack: string[] = [""]; // submenu titles for palette circuit hints
         let currentMenu = new Menu(this.app);
-        this.addTopItem(this.menuBarRow, Locale.LS("Circuits"), currentMenu);
         stack.push(currentMenu);
 
         for (const line of lines) {
@@ -792,16 +853,25 @@ export class Menus {
         td.className = 'gwt-MenuItem';
         td.setAttribute('role', 'menuitem');
         td.setAttribute('aria-haspopup', 'true');
+        td.setAttribute('aria-expanded', 'false');
         td.textContent = label;
 
+        const ignoreTouchScrollClick = guardTouchScrollClick(td);
         td.addEventListener('click', e => {
+            if (ignoreTouchScrollClick(e))
+                return;
             e.stopPropagation();
             const wasOpen = td.classList.contains('open');
             closeAllMenus();
-            if (!wasOpen) td.classList.add('open');
+            if (!wasOpen) {
+                td.classList.add('open');
+                td.setAttribute('aria-expanded', 'true');
+            }
         });
 
         td.addEventListener('mouseover', e => {
+            if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches)
+                return;
             if (anyMenuOpen()) {
                 closeAllMenus();
                 td.classList.add('open');

@@ -19,7 +19,6 @@
 
 import { Dialog } from "./Dialog";
 import { CirSim } from "./CirSim";
-import { UIManager } from "./UIManager";
 import { CircuitElm } from "./CircuitElm";
 import { VoltageElm } from "./VoltageElm";
 import type { Editable } from "./Editable";
@@ -71,11 +70,24 @@ export class EditDialog extends Dialog {
         }
 
         this.dialogEl.innerHTML = "";
+        this.dialogEl.classList.add("componentEditDialog");
 
+        const titleBar = document.createElement("div");
+        titleBar.className = "componentEditDialog__titleBar";
         const titleEl = document.createElement("h3");
         titleEl.textContent = Locale.LS(title);
-        titleEl.style.margin = "0 0 8px 0";
-        this.dialogEl.appendChild(titleEl);
+        const dragHandle = document.createElement("div");
+        dragHandle.className = "componentEditDialog__dragHandle";
+        dragHandle.title = Locale.LS("Drag to move");
+        dragHandle.setAttribute("role", "img");
+        dragHandle.setAttribute("aria-label", Locale.LS("Drag to move"));
+        const dragIcon = document.createElement("img");
+        dragIcon.src = "./mobile/icons/dragable.svg";
+        dragIcon.alt = "";
+        dragIcon.draggable = false;
+        dragHandle.appendChild(dragIcon);
+        titleBar.append(titleEl, dragHandle);
+        this.dialogEl.appendChild(titleBar);
 
         this.mainPanel = document.createElement("div");
         this.dialogEl.appendChild(this.mainPanel);
@@ -99,19 +111,15 @@ export class EditDialog extends Dialog {
 
         // Buttons row
         const btnRow = document.createElement("div");
-        btnRow.style.cssText = "display:flex;justify-content:space-between;margin-top:10px;gap:6px;";
+        btnRow.className = "componentEditDialog__actions";
         this.mainPanel.appendChild(btnRow);
 
         const applyBtn = document.createElement("button");
+        applyBtn.className = "componentEditDialog__apply";
         applyBtn.textContent = Locale.LS("Apply");
         applyBtn.onclick = () => this.apply();
         btnRow.appendChild(applyBtn);
         this.applyButton = applyBtn;
-
-        const okBtn = document.createElement("button");
-        okBtn.textContent = Locale.LS("OK");
-        okBtn.onclick = () => { if (this.apply()) this.closeDialog(); };
-        btnRow.appendChild(okBtn);
 
         const cancelBtn = document.createElement("button");
         cancelBtn.textContent = Locale.LS("Cancel");
@@ -262,15 +270,17 @@ export class EditDialog extends Dialog {
     // have a "preferred value" series, just step by 1. Holding a button down repeats the step.
     private makeValueStepperRow(ei: EditInfo): HTMLDivElement {
         const row = document.createElement("div");
+        row.className = "componentEditDialog__valueStepper";
         row.style.cssText = "display:flex;align-items:center;gap:2px;";
         const minus = document.createElement("button");
+        minus.className = "componentEditDialog__valueButton";
         minus.type = "button";
         minus.textContent = "−";
         const plus = document.createElement("button");
+        plus.className = "componentEditDialog__valueButton";
         plus.type = "button";
         plus.textContent = "+";
-        minus.style.width = "2em";
-        plus.style.width = "2em";
+        (ei.textf as HTMLInputElement).classList.add("componentEditDialog__valueInput");
         // without this, holding the button down on iOS is treated as a long-press on
         // selectable text and pops up the Copy/Look Up/etc. callout instead of repeating
         EditDialog.disableTouchCallout(minus);
@@ -514,55 +524,28 @@ export class EditDialog extends Dialog {
     // interacting with the rest of the circuit (clicking other elements re-targets this same
     // dialog instead of opening a second one; see CommandManager.doEdit).  Editors for anything
     // else (models, Other Options) are opened explicitly, so they are modal like other dialogs.
-    show(topOffset: number = 70): void {
+    show(_topOffset: number = 70): void {
         if (!(this.elm instanceof CircuitElm)) {
             super.show();
             return;
         }
         this.dialogEl.style.position = "fixed";
         this.dialogEl.style.margin = "0";
-        this.dialogEl.style.top = topOffset + "px";
-        this.dialogEl.style.left = "auto";
-        // dock to the left of the element-picker sidebar, not on top of it
-        this.dialogEl.style.right = (UIManager.VERTICALPANELWIDTH + 16) + "px";
-        this.dialogEl.show();
-        this.positionNearElement(this.elm);
-    }
-
-    // place the dialog beside the element being edited (right side preferred, else left),
-    // so it doesn't cover it.  If there isn't room on either side, leave it docked.
-    private positionNearElement(elm: CircuitElm): void {
-        const cv: HTMLCanvasElement | undefined = this.cframe.ui?.cv;
-        const bb = elm.boundingBox;
-        if (!cv || !bb)
-            return;
-        const t = this.cframe.transform;
-        const cr = cv.getBoundingClientRect();
-        const ex1 = cr.left + bb.x * t[0] + t[4];
-        const ex2 = cr.left + (bb.x + bb.width) * t[0] + t[4];
-        const ey1 = cr.top + bb.y * t[3] + t[5];
-        const ey2 = cr.top + (bb.y + bb.height) * t[3] + t[5];
-        const w = this.dialogEl.offsetWidth;
-        const h = this.dialogEl.offsetHeight;
-        const gap = 64;
-        const margin = 8;
-
-        let x: number;
-        if (ex2 + gap + w <= cr.right - margin)
-            x = ex2 + gap;
-        else if (ex1 - gap - w >= cr.left + margin)
-            x = ex1 - gap - w;
-        else
-            return;
-
-        // vertically center on the element, kept within the canvas area
-        let y = (ey1 + ey2) / 2 - h / 2;
-        y = Math.min(y, Math.max(cr.top, window.innerHeight - h) - margin);
-        y = Math.max(y, cr.top + margin);
-
+        this.dialogEl.style.left = "50%";
         this.dialogEl.style.right = "auto";
-        this.dialogEl.style.left = x + "px";
-        this.dialogEl.style.top = y + "px";
+        this.dialogEl.style.top = "50%";
+        this.dialogEl.style.transform = "translate(-50%, -50%)";
+        this.dialogEl.show();
+        const viewportPadding = 12;
+        const rect = this.dialogEl.getBoundingClientRect();
+        if (rect.left < viewportPadding || rect.right > window.innerWidth - viewportPadding ||
+            rect.top < viewportPadding || rect.bottom > window.innerHeight - viewportPadding) {
+            this.dialogEl.style.transform = "none";
+            this.dialogEl.style.left = Math.max(viewportPadding,
+                (window.innerWidth - this.dialogEl.offsetWidth) / 2) + "px";
+            this.dialogEl.style.top = Math.max(viewportPadding,
+                (window.innerHeight - this.dialogEl.offsetHeight) / 2) + "px";
+        }
     }
 
     closeDialog(): void {

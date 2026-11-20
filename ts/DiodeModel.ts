@@ -126,6 +126,19 @@ export class DiodeModel implements Editable, Comparable<DiodeModel> {
         DiodeModel.addDefaultModel("spice-default", new DiodeModel(1e-14, 0, 1, 0, null));
         DiodeModel.addDefaultModel("default", new DiodeModel(1.7143528192808883e-7, 0, 2, 0, null));
         DiodeModel.addDefaultModel("default-zener", new DiodeModel(1.7143528192808883e-7, 0, 2, 5.6, null));
+        DiodeModel.addDefaultModel("ideal", new DiodeModel(1e-18, 0, .001, 0, "idealized"));
+
+        const silicon = new DiodeModel(.001 / (Math.exp(.7 / (2 * DiodeModel.vt)) - 1), 0, 2, 0, "silicon");
+        silicon.setSimple(true);
+        silicon.forwardVoltage = .7;
+        silicon.forwardCurrent = .001;
+        DiodeModel.addDefaultModel("Si diode", silicon);
+
+        const germanium = new DiodeModel(.001 / (Math.exp(.3 / (2 * DiodeModel.vt)) - 1), 0, 2, 0, "germanium");
+        germanium.setSimple(true);
+        germanium.forwardVoltage = .3;
+        germanium.forwardCurrent = .001;
+        DiodeModel.addDefaultModel("Ge diode", germanium);
 
         // old default LED with saturation current that is way too small (causes numerical errors)
         DiodeModel.addDefaultModel("old-default-led", new DiodeModel(2.2349907006671927e-18, 0, 2, 0, null).setInternal());

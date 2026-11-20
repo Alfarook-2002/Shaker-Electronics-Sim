@@ -5,7 +5,7 @@ num=$1
 DIR="$(pwd)"
 
 echo "=== Building TypeScript app ==="
-( cd "$DIR/ts" && VITE_SERVICE_WORKER_ENABLED=true npm run build )
+( cd "$DIR/ts" && VITE_SERVICE_WORKER_ENABLED=true VITE_MOBILE_EDITOR_ENABLED=false npm run build )
 
 rm -rf site
 mkdir site
@@ -52,10 +52,9 @@ cp -r "$DIR/ts/dist/." site
   # circuitjs.html is the versioned entry point too, so it gets the same
   # per-version name as its assets directory. Fix up
   # service-worker.js's own cached file list. (JS
-  # chunks are deliberately NOT touched here: ExportAsUrlDialog hardcodes
-  # the canonical https://www.falstad.com/circuit/circuitjs.html for
-  # Electron's share-URL fallback, which should always point at "latest",
-  # not this specific version.)
+  # chunks are deliberately NOT touched here: ExportAsUrlDialog uses
+  # https://www.falstad.com/circuit/circuitjs.html as its share-URL fallback,
+  # which should always point at "latest", not this specific version.)
   for f in service-worker.js; do
     [ -f "$f" ] || continue
     sed -i.bak "s#circuitjs\.html#circuitjs$num.html#g" "$f"

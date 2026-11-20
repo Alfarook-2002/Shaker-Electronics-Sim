@@ -1,8 +1,6 @@
-Test circuits for the TS bugs found while porting to C++ (the fixes are in the
-stashed ts/ changes).  Each was checked against the stock TS code with
-cxx/tools/compare.py: the stock code loads or runs it wrong, the fixed code
-(and the C++ port) runs it right.  Inputs are logic inputs you can click, and
-outputs are logic outputs.
+Test circuits for regressions in the TypeScript simulator. Each entry describes
+the original behavior and the behavior after the fix. Inputs are logic inputs
+you can click, and outputs are logic outputs.
 
 tsbug-counter2-text.txt   (Counter2Elm, old text format)
     100 Hz clock, CLR/LOAD/EnP/EnT high.

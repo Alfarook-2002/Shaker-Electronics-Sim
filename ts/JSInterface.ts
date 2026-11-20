@@ -58,6 +58,38 @@ export class JSInterface {
     setTimeStep(ts: number): void { this.app.sim.timeStep = ts; }
     getMaxTimeStep(): number { return this.app.sim.maxTimeStep; }
     setMaxTimeStep(ts: number): void { this.app.sim.maxTimeStep = this.app.sim.timeStep = ts; }
+    runMobileCommand(actionId: string): boolean { return this.app.commands.runMobileCommand(actionId); }
+    resetCircuit(): void { this.app.resetAction(); }
+    getMobileMouseMode(): string { return this.app.ui.mouseModeStr; }
+
+    getMobileSpeed(): number {
+        type MobileSpeedBar = {
+            getValue(): number;
+            getMinValue(): number;
+            getMaxValue(): number;
+        };
+        const bars: MobileSpeedBar[] = [this.app.ui.speedBar, this.app.ui.currentBar];
+        const fraction = (bar: MobileSpeedBar) =>
+            (bar.getValue() - bar.getMinValue()) / (bar.getMaxValue() - bar.getMinValue());
+        return Math.round((fraction(bars[0]) + fraction(bars[1])) * 50);
+    }
+
+    setMobileSpeed(value: number): void {
+        if (!Number.isFinite(value))
+            throw new RangeError("Mobile speed must be a finite number.");
+        const fraction = Math.max(0, Math.min(100, value)) / 100;
+        const setFraction = (bar: {
+            getMinValue(): number;
+            getMaxValue(): number;
+            setValue(value: number): void;
+        }) => {
+            const value = bar.getMinValue() + fraction * (bar.getMaxValue() - bar.getMinValue());
+            bar.setValue(Math.round(value));
+        };
+        setFraction(this.app.ui.speedBar);
+        setFraction(this.app.ui.currentBar);
+        this.app.repaint();
+    }
 
     setupJSInterface(): void {
         const that = this;
@@ -75,6 +107,11 @@ export class JSInterface {
             getCircuitAsSVG: () => that.doExportAsSVGFromAPI(),
             exportCircuit:  () => that.dumpCircuit(),
             importCircuit:  (circuit: string, subcircuitsOnly: boolean) => that.importCircuitFromText(circuit, subcircuitsOnly),
+            runMobileCommand: (actionId: string) => that.runMobileCommand(actionId),
+            resetCircuit: () => that.resetCircuit(),
+            getMobileMouseMode: () => that.getMobileMouseMode(),
+            getMobileSpeed: () => that.getMobileSpeed(),
+            setMobileSpeed: (value: number) => that.setMobileSpeed(value),
         };
         const hook = (window as any).oncircuitjsloaded;
         if (hook)

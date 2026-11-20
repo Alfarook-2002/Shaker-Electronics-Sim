@@ -28,6 +28,7 @@ export class Toolbar {
     private highlightableButtons: Map<string, HTMLElement> = new Map();
     private activeButton: HTMLElement | null = null;
     resistorButton: HTMLElement;
+    githubLink: HTMLAnchorElement;
 
     // variant popups (from createButtonSet) and the buttons that open them, so
     // opening one can close the others, and tapping/clicking outside any of them
@@ -50,48 +51,62 @@ export class Toolbar {
         style.overflow = 'hidden';
         style.boxSizing = 'border-box';
 
+        this.githubLink = document.createElement("a");
+        this.githubLink.className = "toolbarGithubLink";
+        this.githubLink.href = "https://github.com/Alfarook-2002";
+        this.githubLink.target = "_blank";
+        this.githubLink.rel = "noopener noreferrer";
+        this.githubLink.setAttribute("aria-label", "Open Alfarook-2002 on GitHub");
+        const githubIcon = document.createElement("img");
+        githubIcon.src = "./mobile/icons/github.svg";
+        githubIcon.alt = "";
+        githubIcon.draggable = false;
+        this.githubLink.appendChild(githubIcon);
+        this.element.appendChild(this.createIconButton("./mobile/icons/add.svg", "New Blank Circuit", new MyCommand("file", "newblankcircuit")));
+        this.element.appendChild(this.createIconButton("./mobile/icons/search.svg", "Find Component/Command...", new MyCommand("edit", "search")));
+        this.element.appendChild(this.createIconButton("./mobile/icons/center.svg", "Center Circuit", new MyCommand("edit", "centercircuit")));
+        const divider = document.createElement("img");
+        divider.className = "toolbarDivider";
+        divider.src = "./mobile/icons/divider.svg";
+        divider.alt = "";
+        divider.draggable = false;
+        this.element.appendChild(divider);
         this.element.appendChild(this.createIconButton("reply",   "Undo", new MyCommand("edit", "undo")));
         this.element.appendChild(this.createIconButton("forward", "Redo", new MyCommand("edit", "redo")));
-        this.element.appendChild(this.createIconButton("scissors", "Cut", new MyCommand("edit", "cut")));
-        this.element.appendChild(this.createIconButton("copy", "Copy", new MyCommand("edit", "copy")));
-        this.element.appendChild(this.createIconButton("paste", "Paste", new MyCommand("edit", "paste")));
-        this.element.appendChild(this.createIconButton("clone", "Duplicate", new MyCommand("edit", "duplicate")));
-        this.element.appendChild(this.createIconButton("search", "Find Component/Command...", new MyCommand("edit", "search")));
-
-        this.element.appendChild(this.createIconButton("zoom-11", "Zoom 100%", new MyCommand("zoom", "zoom100")));
-        this.element.appendChild(this.createIconButton("zoom-in", "Zoom In", new MyCommand("zoom", "zoomin")));
-        this.element.appendChild(this.createIconButton("zoom-out", "Zoom Out", new MyCommand("zoom", "zoomout")));
 
         this.element.appendChild(this.createIconButtonForClass(this.wireIcon, "WireElm"));
         this.resistorButton = this.createIconButtonForClass(this.resistorIcon, "ResistorElm");
         this.element.appendChild(this.resistorButton);
+        const srcInfo = [
+            this.voltage2Icon, "DCVoltageElm",
+            this.acSrcIcon, "ACVoltageElm",
+            this.railIcon, "RailElm"
+        ];
+        this.element.appendChild(this.createButtonSet(srcInfo));
         this.element.appendChild(this.createIconButtonForClass(this.groundIcon, "GroundElm"));
         const capacitorInfo = [this.capacitorIcon, "CapacitorElm", this.polarCapacitorIcon, "PolarCapacitorElm"];
         this.element.appendChild(this.createButtonSet(capacitorInfo));
         this.element.appendChild(this.createIconButtonForClass(this.inductIcon, "InductorElm"));
-        this.element.appendChild(this.createIconButtonForClass(this.diodeIcon, "DiodeElm"));
-        const srcInfo = [this.voltage2Icon, "DCVoltageElm", this.acSrcIcon, "ACVoltageElm"];
-        this.element.appendChild(this.createButtonSet(srcInfo));
-        this.element.appendChild(this.createIconButtonForClass(this.railIcon, "RailElm"));
+        this.element.appendChild(this.createButtonSet([
+            this.diodeIcon, "IdealDiodeElm",
+            this.diodeIcon, "SiDiodeElm",
+            this.diodeIcon, "GeDiodeElm"
+        ], ["Ideal", "Si", "Ge"]));
 
         const switchInfo = [this.switchIcon, "SwitchElm", this.spdtIcon, "Switch2Elm", this.aswitch1Icon, "AnalogSwitchElm",
                             this.aswitch2Icon, "AnalogSwitch2Elm"];
         this.element.appendChild(this.createButtonSet(switchInfo));
 
-        const opAmpInfo = [this.opAmpBotIcon, "OpAmpElm", this.opAmpTopIcon, "OpAmpSwapElm"];
-        this.element.appendChild(this.createButtonSet(opAmpInfo));
+        this.element.appendChild(this.createButtonSet([
+            this.opAmpBotIcon, "OpAmpElm",
+            this.opAmpTopIcon, "OpAmpSwapElm"
+        ], ["- on top", "+ on top"]));
 
         const transistorInfo = [this.transistorIcon, "NTransistorElm", this.pnpTransistorIcon, "PTransistorElm"];
         this.element.appendChild(this.createButtonSet(transistorInfo));
 
         const fetInfo = [this.fetIcon, "NMosfetElm", this.fetIcon2, "PMosfetElm"];
         this.element.appendChild(this.createButtonSet(fetInfo));
-
-        this.element.appendChild(this.createIconButtonForClass(this.inverterIcon, "InverterElm"));
-        const gateInfo = [this.andIcon, "AndGateElm", this.nandIcon, "NandGateElm",
-                          this.orIcon, "OrGateElm", this.norIcon, "NorGateElm", this.xorIcon, "XorGateElm",
-                          this.xnorIcon, "XnorGateElm"];
-        this.element.appendChild(this.createButtonSet(gateInfo));
 
         // Create and add the mode label
         this.modeLabel = document.createElement('span');
@@ -106,43 +121,52 @@ export class Toolbar {
         return this.createIconButton(icon, app.getLabelTextForClass(cls) ?? cls, new MyCommand("main", cls));
     }
 
-    private createIconButton(iconClass: string, tooltip: string, command: MyCommand): HTMLElement {
+    private createIconButton(iconClass: string, tooltip: string, command: MyCommand, activateOnClick: boolean = true): HTMLElement {
         // Create a span to hold the icon
         const iconLabel = document.createElement('span');
         if (iconClass.startsWith("<svg"))
             iconLabel.innerHTML = this.makeSvg(iconClass, 24);
-        else
+        else if (iconClass.endsWith(".svg")) {
+            const icon = document.createElement("img");
+            icon.src = iconClass;
+            icon.alt = "";
+            icon.draggable = false;
+            iconLabel.appendChild(icon);
+            iconLabel.classList.add("toolbarAssetIcon");
+        } else
             iconLabel.classList.add("cirjsicon-" + iconClass);
         iconLabel.title = Locale.LS(tooltip);
 
         // Style the icon button
         const style = iconLabel.style;
         style.fontSize = '24px';
-        style.color = '#333';
-        style.padding = '1px';
-        style.marginRight = '5px';
+        style.color = '#f2f2f2';
+        style.padding = '0';
+        style.marginRight = '0';
         style.cursor = 'pointer';
         if (iconClass.startsWith("<svg"))
             style.paddingTop = '5px';
-        style.touchAction = 'none';
+        style.touchAction = 'pan-x';
 
-        // Add hover effect for the button
-        iconLabel.addEventListener('mouseover', () => iconLabel.style.color = '#007bff');
-        iconLabel.addEventListener('mouseout', () => iconLabel.style.color = '#333');
-
-        // Add a click handler to perform the action
-        iconLabel.addEventListener('click', () => {
-            // un-highlight
-            iconLabel.style.color = '#333';
-            if (iconLabel === this.activeButton) {
-                new MyCommand("main", "Select").execute();
-                this.activeButton = null;
-            } else
-                command.execute();
+        // Keep the active tool's light icon color when the pointer leaves it.
+        iconLabel.addEventListener('mouseover', () => iconLabel.style.color = '#fff');
+        iconLabel.addEventListener('mouseout', () => {
+            iconLabel.style.color = iconLabel === this.activeButton ? '#fff' : '#f2f2f2';
         });
 
+        if (activateOnClick) {
+            iconLabel.addEventListener('click', () => {
+                if (iconLabel === this.activeButton) {
+                    new MyCommand("main", "Select").execute();
+                    this.activeButton = null;
+                } else
+                    command.execute();
+                iconLabel.style.color = iconLabel === this.activeButton ? '#fff' : '#f2f2f2';
+            });
+        }
+
         // Track buttons that belong to the "main" command group
-        if (command.getMenuName() === "main") {
+        if (activateOnClick && command.getMenuName() === "main") {
             this.highlightableButtons.set(command.getItemName(), iconLabel);
 
             // pressing and dragging (rather than just clicking) drops a new element
@@ -151,7 +175,7 @@ export class Toolbar {
                 if (mde.button === 0)
                     UIManager.theUI.mouse.beginToolbarDrag(command.getItemName(), mde.clientX, mde.clientY);
             });
-            this.addTouchDragSupport(iconLabel);
+            this.addTouchDragSupport(iconLabel, true);
 
             // while hovering over an element-creation button, tell the user how to use it
             iconLabel.addEventListener('mouseover', () => {
@@ -165,15 +189,11 @@ export class Toolbar {
         return iconLabel;
     }
 
-    // Translate touch gestures on a toolbar button into the synthetic mouse events that
-    // beginToolbarDrag/toolbarDragMove/toolbarDragEnd already expect, since iOS/touch browsers
-    // don't emit real mousemove events during a touch-drag (they just pan the page instead).
-    // touchstart re-dispatches a "mousedown" on the button itself, which the existing
-    // mousedown handler picks up; touchmove/touchend dispatch "mousemove"/"mouseup" on the
-    // document so the document-level listeners (which drive the drag once it's pending)
-    // see them just like they would for a real mouse drag.
-    private addTouchDragSupport(el: HTMLElement): void {
+    // Translate vertical touch drags into the mouse events used for toolbar element placement.
+    // Main-bar buttons leave horizontal gestures alone so the bottom toolbar can scroll.
+    private addTouchDragSupport(el: HTMLElement, allowHorizontalScroll: boolean = false): void {
         let startX = 0, startY = 0, moved = false;
+        let moveIntent: "pending" | "scroll" | "drag" = "pending";
         const TAP_THRESHOLD = 6;
         el.addEventListener('touchstart', (e: TouchEvent) => {
             if (e.touches.length !== 1)
@@ -182,21 +202,24 @@ export class Toolbar {
             startX = t.clientX;
             startY = t.clientY;
             moved = false;
-            // touchmove below calls preventDefault(), which suppresses the browser's own
-            // synthetic mouseover/mousedown/click sequence for this touch -- so dispatch
-            // mouseover ourselves, otherwise hover-triggered popups (e.g. the variant
-            // palette) never appear on touch devices.
+            moveIntent = "pending";
             el.dispatchEvent(new MouseEvent('mouseover', { clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true }));
             el.dispatchEvent(new MouseEvent('mousedown', { clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true, button: 0 }));
         }, { passive: true });
         el.addEventListener('touchmove', (e: TouchEvent) => {
             if (e.touches.length !== 1)
                 return;
-            e.preventDefault();
             const t = e.touches[0];
             const dx = t.clientX - startX, dy = t.clientY - startY;
-            if (dx*dx + dy*dy > TAP_THRESHOLD*TAP_THRESHOLD)
+            if (moveIntent === "pending") {
+                if (dx*dx + dy*dy <= TAP_THRESHOLD*TAP_THRESHOLD)
+                    return;
                 moved = true;
+                moveIntent = allowHorizontalScroll && Math.abs(dx) > Math.abs(dy) ? "scroll" : "drag";
+            }
+            if (moveIntent === "scroll")
+                return;
+            e.preventDefault();
             document.dispatchEvent(new MouseEvent('mousemove', { clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true }));
         }, { passive: false });
         el.addEventListener('touchend', (e: TouchEvent) => {
@@ -210,34 +233,12 @@ export class Toolbar {
             // there's no touch equivalent of a real mouseout, so the hover highlight
             // this element's mouseover handler applied (on touchstart, above) would
             // otherwise be left stuck on -- just clear it directly
-            el.style.color = '#333';
+            el.style.color = el === this.activeButton ? '#fff' : '#f2f2f2';
         }, { passive: false });
         el.addEventListener('touchcancel', (e: TouchEvent) => {
             const t = e.changedTouches[0];
             document.dispatchEvent(new MouseEvent('mouseup', { clientX: t.clientX, clientY: t.clientY, bubbles: true, cancelable: true }));
-            el.style.color = '#333';
-        }, { passive: true });
-    }
-
-    // Closes the palette once a touch that started on its owning button (which is
-    // where the popup opens from) moves off of both the button and the popup.
-    // Can't just close on touchstart/mousedown like a real mouse-drag effectively
-    // does via mouseout -- touchstart on this same element is also what opens the
-    // popup (see addTouchDragSupport's synthetic mouseover), so closing immediately
-    // there would close the popup the instant it appears.
-    private addPopupDismissOnLeave(el: HTMLElement, popupEl: HTMLElement): void {
-        el.addEventListener('touchmove', (e: TouchEvent) => {
-            if (e.touches.length !== 1)
-                return;
-            if (popupEl.style.display === 'none')
-                return;
-            const t = e.touches[0];
-            const pr = popupEl.getBoundingClientRect();
-            const er = el.getBoundingClientRect();
-            const inPopup = t.clientX >= pr.left && t.clientX <= pr.right && t.clientY >= pr.top && t.clientY <= pr.bottom;
-            const inButton = t.clientX >= er.left && t.clientX <= er.right && t.clientY >= er.top && t.clientY <= er.bottom;
-            if (!inPopup && !inButton)
-                this.closeAllPalettes();
+            el.style.color = el === this.activeButton ? '#fff' : '#f2f2f2';
         }, { passive: true });
     }
 
@@ -274,14 +275,19 @@ export class Toolbar {
     makeSvg(s: string, size: number): string {
         const scale = size / 24.0;
         return "<svg xmlns='http://www.w3.org/2000/svg' width='" + size + "' height='" + size + "'><g transform='scale(" + scale + ")'>" +
-                 s.substring(5, s.length - 5) + "<g></svg>";
+                 s.substring(5, s.length - 5).replace(/#000000/gi, "currentColor") + "<g></svg>";
     }
 
-    // New method for creating variant buttons
-    private createButtonSet(info: string[]): HTMLElement {
+    private makeIconMarkup(icon: string, size: number): string {
+        if (!icon.endsWith(".svg"))
+            return this.makeSvg(icon, size);
+        return `<img src="${icon}" alt="" width="${size}" height="${size}" draggable="false">`;
+    }
+
+    private createButtonSet(info: string[], visibleLabels?: string[]): HTMLElement {
         const mainCommand = new MyCommand("main", info[1]);
         const app = CirSim.theApp;
-        const iconLabel = this.createIconButton(info[0], app.getLabelTextForClass(info[1]) ?? info[1], mainCommand);
+        const iconLabel = this.createIconButton(info[0], app.getLabelTextForClass(info[1]) ?? info[1], mainCommand, false);
 
         const paletteContainer = document.createElement('div');
         paletteContainer.style.display = 'none';
@@ -302,18 +308,21 @@ export class Toolbar {
         for (let i = 0; i < info.length; i += 2) {
             // Create each variant button
             const variantButton = document.createElement('span');
-            variantButton.innerHTML = this.makeSvg(info[i], 40);
+            variantButton.innerHTML = this.makeIconMarkup(info[i], 40);
             variantButton.title = app.getLabelTextForClass(info[i + 1]) ?? info[i + 1];
+            const visibleLabel = visibleLabels?.[i / 2];
+            if (visibleLabel !== undefined)
+                variantButton.dataset.variantLabel = visibleLabel;
 
             // Style the variant button
             const variantStyle = variantButton.style;
-            variantStyle.color = '#333';
+            variantStyle.color = '#f2f2f2';
             //variantStyle.padding = '5px';
             variantStyle.cursor = 'pointer';
             variantStyle.touchAction = 'none';
 
             const command = new MyCommand("main", info[i + 1]);
-            const smallSvg = this.makeSvg(info[i], 24);
+            const smallSvg = this.makeIconMarkup(info[i], 24);
 
             // Change the icon of the main button to reflect the variant selected, and
             // switch the mouse mode to it right away -- don't wait for a click event,
@@ -359,31 +368,18 @@ export class Toolbar {
         this.paletteContainers.push(paletteContainer);
         this.paletteButtons.push(iconLabel);
         this.installGlobalPopupCloser();
-        this.addPopupDismissOnLeave(iconLabel, paletteContainer);
 
-        // Show palette on mouse-over
-        iconLabel.addEventListener('mouseover', () => {
-            // close any other open palette first
-            for (const p of this.paletteContainers)
-                if (p !== paletteContainer)
-                    p.style.display = 'none';
-
+        iconLabel.addEventListener('click', e => {
+            e.stopPropagation();
+            const wasOpen = paletteContainer.style.display !== 'none';
+            this.closeAllPalettes();
+            if (wasOpen)
+                return;
             paletteContainer.style.display = 'flex';
-
-            // Position the palette relative to the icon label
             const rect = iconLabel.getBoundingClientRect();
-            const leftOffset = rect.left + window.scrollX - 12;
-            const topOffset = rect.top + window.scrollY + iconLabel.offsetHeight - 2;
-            paletteContainer.style.left = leftOffset + 'px';
-            paletteContainer.style.top = topOffset + 'px';
+            const maxLeft = Math.max(8, document.documentElement.clientWidth - paletteContainer.getBoundingClientRect().width - 8);
+            paletteContainer.style.left = Math.max(8, Math.min(rect.left, maxLeft)) + 'px';
         });
-
-        // Hide palette on mouse-out
-        iconLabel.addEventListener('mouseout', () => { paletteContainer.style.display = 'none'; });
-
-        // Keep the palette visible when hovering over it
-        paletteContainer.addEventListener('mouseover', () => paletteContainer.style.display = 'flex');
-        paletteContainer.addEventListener('mouseout', () => { paletteContainer.style.display = 'none'; });
 
         return iconLabel;
     }
@@ -398,21 +394,21 @@ export class Toolbar {
     highlightButton(key: string): void {
         // Deactivate the currently active button
         if (this.activeButton !== null) {
-            this.activeButton.style.color = '#333';  // Reset color
+            this.activeButton.style.color = '#f2f2f2';  // Reset color
             this.activeButton.style.backgroundColor = '';
         }
 
         // Activate the new button
         const newActiveButton = this.highlightableButtons.get(key) ?? null;
         if (newActiveButton !== null) {
-            newActiveButton.style.color = '#007bff';  // Active color
-            newActiveButton.style.backgroundColor = '#e6f7ff';
+            newActiveButton.style.color = '#ffffff';
+            newActiveButton.style.backgroundColor = '#5b5b5b';
             this.activeButton = newActiveButton;
         }
     }
 
-    setEuroResistors(euro: boolean): void {
-        this.resistorButton.innerHTML = this.makeSvg(euro ? this.euroResistorIcon : this.resistorIcon, 24);
+    setEuroResistors(_euro: boolean): void {
+        this.resistorButton.innerHTML = this.makeSvg(this.resistorIcon, 24);
     }
 
     readonly wireIcon = "<svg><g transform='scale(0.208) translate(7.5, 32)'>" +
@@ -449,7 +445,7 @@ export class Toolbar {
 
     readonly inductIcon = "<svg><g transform='translate(-101.59,-58.18) scale(0.405680)'><path fill='none' stroke='currentColor' d=' M 256 176 L 264 176' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 296 176 L 304 176' stroke-linecap='round' stroke-width='3' /><g transform='matrix(1,0,0,1,264,176) scale(1,1)'><path fill='none' stroke='currentColor' d=' M 0 0 L 0 6.53144959545255e-16 A 5.333333333333333 5.333333333333333 0 0 1 10.666666666666666 0 L 10.666666666666666 0' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 10.666666666666666 0 L 10.666666666666668 6.53144959545255e-16 A 5.333333333333333 5.333333333333333 0 0 1 21.333333333333332 0 L 21.333333333333332 0' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 21.333333333333332 0 L 21.333333333333336 6.53144959545255e-16 A 5.333333333333333 5.333333333333333 0 0 1 32 0 L 32 0' stroke-linecap='round' stroke-width='3' /></g><path fill='currentColor' stroke='currentColor' d=' M 259 176 A 3 3 0 1 1 258.99973922528994 175.96044522459943 Z' /><path fill='currentColor' stroke='currentColor' d=' M 307 176 A 3 3 0 1 1 306.99973922528994 175.96044522459943 Z' /></g></svg>";
 
-    readonly railIcon = "<svg><g><text style='user-select: none;' fill='currentColor' stroke='none' font-family='sans-serif' font-size='10px' font-style='normal' font-weight='normal' text-decoration='normal' x='2' y='11' text-anchor='start' dominant-baseline='central'>+5V</text></g></svg>";
+    readonly railIcon = "./mobile/icons/1_terminal.svg";
 
     readonly andIcon = "<svg><g transform='translate(-143.64,-130.55) scale(0.363636)'><path fill='none' stroke='currentColor' d=' M 400 400 L 414 400' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 400 384 L 414 384' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 442 392 L 456 392' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 414 378 L 428 378 A 14 14 0 0 1 428 406 L 414 406 Z' stroke-linecap='round' stroke-width='3' /></g></svg>";
     readonly orIcon = "<svg><g transform='translate(-143.64,-153.82) scale(0.363636)'><path fill='none' stroke='currentColor' d=' M 400 464 L 414 464' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 400 448 L 414 448' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 442 456 L 456 456' stroke-linecap='round' stroke-width='3' /><path fill='none' stroke='currentColor' d=' M 413 442 L 422 442 C 434 445 434 445 442 456 C 434 467 434 467 422 470 L 413 470 C 416 456 416 456 413 442 Z' stroke-linecap='round' stroke-width='3' /></g></svg>";

@@ -126,7 +126,7 @@ td.gwt-MenuItem {
 }
 
 td.gwt-MenuItem.open {
-    background: #c8d8f8;
+    background: #555;
 }
 
 /* Real :hover only, scoped to devices that have genuine hover (a mouse) -- on touch,
@@ -135,7 +135,7 @@ td.gwt-MenuItem.open {
    indefinitely. Touch relies solely on the .open class, toggled explicitly in Menus.ts. */
 @media (hover: hover) {
     td.gwt-MenuItem:hover {
-        background: #c8d8f8;
+        background: #555;
     }
 }
 
@@ -178,17 +178,13 @@ td.gwt-MenuItem.open > .menuDropdown {
 }
 
 .hasSubmenu.open {
-    background: #c8d8f8;
+    background: #555;
 }
 
 @media (hover: hover) {
-    .hasSubmenu:hover > .menuDropdown {
-        display: block;
-    }
-
     /* Keep submenu open when the mouse moves from the arrow into the submenu */
     .hasSubmenu:hover {
-        background: #c8d8f8;
+        background: #555;
     }
 }
 
@@ -207,8 +203,10 @@ td.gwt-MenuItem.open > .menuDropdown {
     white-space: nowrap;
 }
 
-.menuItem:hover {
-    background: #c8d8f8;
+@media (hover: hover) {
+    .menuItem:hover {
+        background: #555;
+    }
 }
 
 .menuItem.menuItemDisabled,
@@ -245,8 +243,10 @@ td.gwt-MenuItem.open > .menuDropdown {
 /* Arrow indicating a submenu */
 .submenuArrow {
     margin-left: auto;
-    padding-left: 8px;
-    font-size: 10px;
+    flex: 0 0 12px;
+    height: 12px;
+    padding-left: 0;
+    width: 12px;
 }
 
 /* Sub-heading row (non-clickable category label inside a menu) */
@@ -326,7 +326,7 @@ td.gwt-MenuItem.open > .menuDropdown {
     display: none;
 }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 900px) {
     /* sidebar toggle tab — floats over the right edge of the canvas */
     .triggerLabel {
         display: initial;

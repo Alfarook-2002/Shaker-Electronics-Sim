@@ -339,7 +339,7 @@ export class BatteryElm extends CircuitElm {
     getInfo(arr: string[]): void {
         arr[0] = Locale.LS("battery") + " (" + Locale.LS(this.getBatteryTypeName()) + ")";
         arr[1] = "I = " + CircuitElm.getCurrentText(this.getCurrent());
-        arr[2] = "Vd = " + CircuitElm.getVoltageText(this.getVoltageDiff());
+        arr[2] = "V = " + CircuitElm.getVoltageText(this.getVoltageDiff());
         arr[3] = "SOC = " + this.getSocText();
         arr[4] = "P = " + CircuitElm.getUnitText(this.getPower(), "W");
     }

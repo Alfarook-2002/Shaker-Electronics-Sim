@@ -50,13 +50,14 @@ export class Dialog {
     // label toggles it (pointer capture would otherwise retarget the click to the dialog)
     private static readonly NO_DRAG_SELECTOR =
         "input, button, select, textarea, a, option, canvas, label:has(input), label[for], [contenteditable]";
-
     private setupDragging(): void {
         this.dialogEl.addEventListener("pointerdown", (e: PointerEvent) => {
             if (e.button !== 0)
                 return;
             const target = e.target as HTMLElement | null;
-            if (!target || target.closest(Dialog.NO_DRAG_SELECTOR))
+            if (!target)
+                return;
+            if (target.closest(Dialog.NO_DRAG_SELECTOR))
                 return;
             // don't start a drag on the backdrop (clicks outside the dialog box
             // are still reported with the dialog as target)
@@ -71,6 +72,7 @@ export class Dialog {
             this.dragPointerId = e.pointerId;
             this.dlgDragging = false;
             this.dialogEl.setPointerCapture(e.pointerId);
+            e.preventDefault();
         });
 
         this.dialogEl.addEventListener("pointermove", (e: PointerEvent) => {
@@ -88,6 +90,7 @@ export class Dialog {
                 const r = this.dialogEl.getBoundingClientRect();
                 this.dialogEl.style.margin = "0";
                 this.dialogEl.style.position = "fixed";
+                this.dialogEl.style.transform = "none";
                 this.dialogEl.style.left = r.left + "px";
                 this.dialogEl.style.top = r.top + "px";
                 this.dragOrigLeft = r.left;
@@ -114,9 +117,9 @@ export class Dialog {
     // move the dialog to the given viewport position, keeping it on screen
     private moveTo(x: number, y: number): void {
         const w = this.dialogEl.offsetWidth;
-        const margin = 20;
-        x = Math.max(margin - w, Math.min(x, window.innerWidth - margin));
-        y = Math.max(0, Math.min(y, window.innerHeight - margin));
+        const h = this.dialogEl.offsetHeight;
+        x = Math.max(0, Math.min(x, window.innerWidth - w));
+        y = Math.max(0, Math.min(y, window.innerHeight - h));
         this.dialogEl.style.left = x + "px";
         this.dialogEl.style.top = y + "px";
     }

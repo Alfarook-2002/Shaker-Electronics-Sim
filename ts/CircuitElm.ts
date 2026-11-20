@@ -1252,7 +1252,7 @@ export abstract class CircuitElm implements Editable {
 
     getBasicInfo(arr: string[]): number {
         arr[1] = "I = " + CircuitElm.getCurrentDText(this.getCurrent());
-        arr[2] = "Vd = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
+        arr[2] = "V = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
         return 3;
     }
 
@@ -1493,6 +1493,9 @@ export abstract class CircuitElm implements Editable {
     isMouseElm(): boolean {
         return CircuitElm.mouseElmRef === this;
     }
+
+    isCloseButtonAt(_x: number, _y: number): boolean { return false; }
+    isDockButtonAt(_x: number, _y: number): boolean { return false; }
 
     updateModels(): void {}
     stepFinished(): void {}

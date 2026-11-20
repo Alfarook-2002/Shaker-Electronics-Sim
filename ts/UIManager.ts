@@ -253,6 +253,8 @@ export class Scrollbar {
     }
 
     getValue(): number { return this.val; }
+    getMinValue(): number { return this.min; }
+    getMaxValue(): number { return this.max; }
 
     setValue(v: number): void {
         if (v < this.min) v = this.min;
@@ -511,8 +513,6 @@ export class UIManager {
     init(): void {
         let printable = false;
         let convention = true;
-        let euroRes = false;
-        let usRes = false;
         let showOhm = false;
         let running = true;
         let hideSidebar = false;
@@ -533,9 +533,7 @@ export class UIManager {
         this.elmList = this.app.elmList;
 
         try {
-            euroRes       = qp.getBooleanValue("euroResistors", false);
             euroGates     = qp.getBooleanValue("IECGates", this.getOptionFromStorage("euroGates", Locale.weAreInGermany()));
-            usRes         = qp.getBooleanValue("usResistors", false);
             showOhm       = qp.getBooleanValue("showOhm", this.getOptionFromStorage("showOhm", false));
             running       = qp.getBooleanValue("running", true);
             hideSidebar   = qp.getBooleanValue("hideSidebar", false);
@@ -556,13 +554,7 @@ export class UIManager {
             CirSim.console("Exception: " + e);
         }
 
-        let euroSetting = false;
-        if (euroRes)
-            euroSetting = true;
-        else if (usRes)
-            euroSetting = false;
-        else
-            euroSetting = this.getOptionFromStorage("euroResistors", !Locale.weAreInUS(true));
+        const euroSetting = false;
 
         // build main layout container
         this.layoutPanel = document.createElement('div');
@@ -629,8 +621,9 @@ export class UIManager {
         this.menus.euroResistorCheckItem.setState(euroSetting);
         this.menus.euroResistorCheckItem.setCommand({
             execute: () => {
-                this.setOptionInStorage("euroResistors", this.menus.euroResistorCheckItem.getState());
-                this.toolbar.setEuroResistors(this.menus.euroResistorCheckItem.getState());
+                this.menus.euroResistorCheckItem.setState(false);
+                this.setOptionInStorage("euroResistors", false);
+                this.toolbar.setEuroResistors(false);
             }
         });
         this.menus.showOhmCheckItem.setState(showOhm);
@@ -703,6 +696,7 @@ export class UIManager {
         this.toolbar.element.style.height = UIManager.TOOLBARHEIGHT + 'px';
         this.toolbar.element.style.overflow = 'hidden';
         this.layoutPanel.appendChild(this.toolbar.element);
+        this.layoutPanel.appendChild(this.toolbar.githubLink);
 
         // canvas wrapper: fills space below toolbar, left of sidebar
         this.canvasWrapper = document.createElement('div');
@@ -852,32 +846,16 @@ export class UIManager {
     // ---- Canvas/Layout ----
 
     checkCanvasSize(): void {
-        let expectedWidth  = window.innerWidth;
-        let expectedHeight = window.innerHeight;
-        expectedHeight -= (this.hideMenu ? 0 : UIManager.MENUBARHEIGHT);
-        if (!this.app.isMobile(this.sidePanelCheckboxLabel))
-            expectedWidth -= UIManager.VERTICALPANELWIDTH;
-        if (this.menus.toolbarCheckItem.getState())
-            expectedHeight -= UIManager.TOOLBARHEIGHT;
-        expectedWidth  = Math.max(expectedWidth,  0);
-        expectedHeight = Math.max(expectedHeight, 0);
+        const expectedWidth = this.canvasWrapper.clientWidth;
+        const expectedHeight = this.canvasWrapper.clientHeight;
         const dpr = UIManager.devicePixelRatio();
         if (this.canvasWidth !== expectedWidth || this.canvasHeight !== expectedHeight || this.lastDevicePixelRatio !== dpr)
             this.setCanvasSize();
     }
 
     setCanvasSize(): void {
-        let width  = window.innerWidth;
-        let height = window.innerHeight;
-        height -= (this.hideMenu ? 0 : UIManager.MENUBARHEIGHT);
-
-        if (!this.app.isMobile(this.sidePanelCheckboxLabel))
-            width -= UIManager.VERTICALPANELWIDTH;
-        if (this.menus.toolbarCheckItem.getState())
-            height -= UIManager.TOOLBARHEIGHT;
-
-        width  = Math.max(width,  0);
-        height = Math.max(height, 0);
+        const width = this.canvasWrapper.clientWidth;
+        const height = this.canvasWrapper.clientHeight;
 
         if (this.cv) {
             this.cv.style.width  = width  + 'px';
@@ -906,12 +884,12 @@ export class UIManager {
     setCircuitArea(): void {
         const height = this.canvasHeight;
         const width  = this.canvasWidth;
-        let h: number;
-        if (this.app.scopeManager == null || this.app.scopeManager.scopeCount === 0)
-            h = 0;
-        else
-            h = Math.round(height * this.app.scopeManager.scopeHeightFraction);
-        this.app.circuitArea = new Rectangle(0, 0, width, height - h);
+        const hasScopes = this.app.scopeManager != null && this.app.scopeManager.scopeCount > 0;
+        const h = hasScopes ? Math.round(height * this.app.scopeManager.scopeHeightFraction) : 0;
+        const y = hasScopes && this.app.isMobile(this.sidePanelCheckboxLabel) ? h : 0;
+        const oldY = this.app.circuitArea.y;
+        this.app.circuitArea = new Rectangle(0, y, width, height - h);
+        this.app.transform[5] += y - oldY;
     }
 
     centerCircuit(): void {
@@ -938,7 +916,8 @@ export class UIManager {
         this.app.transform[1] = this.app.transform[2] = this.app.transform[4] = this.app.transform[5] = 0;
         if (bounds != null) {
             this.app.transform[4] = (this.app.circuitArea.width - bounds.width * scale) / 2 - bounds.x * scale;
-            this.app.transform[5] = (cheight - bounds.height * scale) / 2 - bounds.y * scale;
+            this.app.transform[5] = this.app.circuitArea.y +
+                (cheight - bounds.height * scale) / 2 - bounds.y * scale;
         }
     }
 
@@ -1201,14 +1180,16 @@ export class UIManager {
                        this.mouse.selectedArea.width, this.mouse.selectedArea.height);
         }
 
-        if (this.menus.crossHairCheckItem.getState() && this.mouse.mouseCursorX >= 0
+        const area = this.app.circuitArea;
+        if (this.menus.crossHairCheckItem.getState() && this.mouse.mouseCursorX >= area.x
                 && this.mouse.mouseCursorX <= this.app.circuitArea.width
-                && this.mouse.mouseCursorY <= this.app.circuitArea.height) {
+                && this.mouse.mouseCursorY >= area.y
+                && this.mouse.mouseCursorY <= area.y + area.height) {
             g.setColor(Color.gray);
             const x = this.app.snapGrid(this.mouse.inverseTransformX(this.mouse.mouseCursorX));
             const y = this.app.snapGrid(this.mouse.inverseTransformY(this.mouse.mouseCursorY));
-            g.drawLine(x, this.mouse.inverseTransformY(0), x, this.mouse.inverseTransformY(this.app.circuitArea.height));
-            g.drawLine(this.mouse.inverseTransformX(0), y, this.mouse.inverseTransformX(this.app.circuitArea.width), y);
+            g.drawLine(x, this.mouse.inverseTransformY(area.y), x, this.mouse.inverseTransformY(area.y + area.height));
+            g.drawLine(this.mouse.inverseTransformX(area.x), y, this.mouse.inverseTransformX(area.x + area.width), y);
         }
 
         /*if (WireRouter.lastRouter != null)
@@ -1284,20 +1265,29 @@ export class UIManager {
     }
 
     drawBottomArea(g: Graphics): void {
+        const area = this.app.circuitArea;
+        const topScopes = area.y > 0 && this.app.scopeManager.scopeCount > 0;
+        const areaBottom = area.y + area.height;
+        const hoveringElement = this.mouse.getMouseElm() != null;
+        const infoAtTop = topScopes ||
+            (this.app.stopMessage == null && this.app.scopeManager.scopeCount === 0 &&
+                this.app.isMobile(this.sidePanelCheckboxLabel));
         let leftX = 0;
         let h = 0;
         if (this.app.stopMessage == null && this.app.scopeManager.scopeCount === 0) {
             leftX = UIManager.max(this.canvasWidth - CirSim.infoWidth, 0);
             const h0 = Math.round(this.canvasHeight * this.app.scopeManager.scopeHeightFraction);
-            h = (this.mouse.getMouseElm() == null) ? 70 : h0;
+            h = hoveringElement ? h0 : 70;
             if (this.hideInfoBox)
                 h = 0;
         }
         if (this.app.stopMessage != null && this.app.circuitArea.height > this.canvasHeight - 30)
             h = 30;
         g.setColor(this.menus.printableCheckItem.getState() ? "#eee" : "#111");
-        g.fillRect(leftX, this.app.circuitArea.height - h,
-                   this.app.circuitArea.width, this.canvasHeight - this.app.circuitArea.height + h);
+        const backgroundY = infoAtTop ? 0 : hoveringElement ? area.y : areaBottom - h;
+        const backgroundHeight = infoAtTop ? (topScopes ? area.y : h) :
+            hoveringElement ? h : this.canvasHeight - areaBottom + h;
+        g.fillRect(leftX, backgroundY, area.width, backgroundHeight);
         g.setFont(CircuitElm.unitsFont);
         let ct = this.app.scopeManager.scopeCount;
         if (this.app.stopMessage != null)
@@ -1314,10 +1304,16 @@ export class UIManager {
         }
         for (let i = 0; i !== ct; i++)
             this.app.scopeManager.scopes[i].draw(g);
+        if (hoveringElement && topScopes && ct > 0) {
+            const infoX = this.app.scopeManager.scopes[ct - 1].rightEdge() + 10;
+            g.setColor(this.menus.printableCheckItem.getState() ? "#eee" : "#111");
+            g.fillRect(infoX, 0, this.canvasWidth - infoX, area.y);
+        }
         if (this.mouse.mouseWasOverSplitter) {
             g.setColor(CircuitElm.selectColor);
             g.setLineWidth(4.0);
-            g.drawLine(0, this.app.circuitArea.height - 2, this.app.circuitArea.width, this.app.circuitArea.height - 2);
+            const splitterY = topScopes ? area.y : areaBottom;
+            g.drawLine(0, splitterY - 2, area.width, splitterY - 2);
             g.setLineWidth(1.0);
         }
         g.setColor(CircuitElm.whiteColor);
@@ -1384,7 +1380,7 @@ export class UIManager {
             if (this.app.savedFlag)
                 info[i++] = "(saved)";
 
-            const ybase = this.app.circuitArea.height - h;
+            const ybase = infoAtTop || hoveringElement ? 0 : areaBottom - h;
             for (i = 0; info[i] != null; i++)
                 g.drawString(info[i]!, x, ybase + 15 * (i + 1));
         }

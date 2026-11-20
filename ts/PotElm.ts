@@ -342,7 +342,7 @@ export class PotElm extends CircuitElm {
 
     getInfo(arr: string[]): void {
         arr[0] = "potentiometer";
-        arr[1] = "Vd = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
+        arr[1] = "V = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
         arr[2] = "R1 = " + CircuitElm.getUnitText(this.resistance1, Locale.ohmString);
         arr[3] = "R2 = " + CircuitElm.getUnitText(this.resistance2, Locale.ohmString);
         arr[4] = "I1 = " + CircuitElm.getCurrentDText(this.current1);

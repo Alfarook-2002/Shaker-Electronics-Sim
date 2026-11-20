@@ -344,7 +344,7 @@ export class ProbeElm extends CircuitElm {
 
     getMeterLine(m: number): string {
         switch (m) {
-            case ProbeElm.TP_VOL: return "Vd = " + CircuitElm.getVoltageText(this.getVoltageDiff());
+            case ProbeElm.TP_VOL: return "V = " + CircuitElm.getVoltageText(this.getVoltageDiff());
             case ProbeElm.TP_RMS: return "V(rms) = " + CircuitElm.getVoltageText(this.rmsV);
             case ProbeElm.TP_AVG: return "V(avg) = " + CircuitElm.getVoltageText(this.avgV);
             case ProbeElm.TP_MAX: return "Vmax = " + CircuitElm.getVoltageText(this.lastMaxV);

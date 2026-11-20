@@ -163,7 +163,7 @@ export class LDRElm extends CircuitElm {
     getInfo(arr: string[]): void {
         arr[0] = "photoresistor";
         arr[1] = "I = " + CircuitElm.getCurrentDText(this.current);
-        arr[2] = "Vd = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
+        arr[2] = "V = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
         arr[3] = "R = " + CircuitElm.getUnitText(this.resistance, Locale.ohmString);
         arr[4] = "P = " + CircuitElm.getUnitText(this.getPower(), "W");
     }

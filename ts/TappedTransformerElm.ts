@@ -268,8 +268,8 @@ export class TappedTransformerElm extends CircuitElm {
         arr[0] = "transformer";
         arr[1] = "L = " + CircuitElm.getUnitText(this.inductance, "H");
         arr[2] = "Ratio = 1:" + this.ratio;
-        arr[3] = "Vd1 = " + CircuitElm.getVoltageText(this.nodes[0].v - this.nodes[2].v);
-        arr[4] = "Vd2 = " + CircuitElm.getVoltageText(this.nodes[1].v - this.nodes[3].v);
+        arr[3] = "V1 = " + CircuitElm.getVoltageText(this.nodes[0].v - this.nodes[2].v);
+        arr[4] = "V2 = " + CircuitElm.getVoltageText(this.nodes[1].v - this.nodes[3].v);
     }
 
     getCurrentIntoNode(n: number): number {

@@ -467,7 +467,7 @@ export class CustomTransformerElm extends CircuitElm {
             if (2 + i * 2 >= arr.length)
                 break;
             const ni = this.coilNodes[i];
-            arr[2 + i*2] = "Vd" + (i+1) + " = " + CircuitElm.getVoltageText(this.nodes[ni].v - this.nodes[ni+1].v);
+            arr[2 + i*2] = "V" + (i+1) + " = " + CircuitElm.getVoltageText(this.nodes[ni].v - this.nodes[ni+1].v);
             arr[3 + i*2] = "I" + (i+1) + " = " + CircuitElm.getCurrentText(this.coilCurrents[i]);
         }
     }

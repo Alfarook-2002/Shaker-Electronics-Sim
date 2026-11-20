@@ -718,11 +718,7 @@ export class CirSim {
 
     isSelection(): boolean { return this.ui.isSelection(); }
 
-    isMobile(el: HTMLElement): boolean {
-        if (!el) return false;
-        const style = getComputedStyle(el);
-        return style.display !== 'none';
-    }
+    isMobile(_el: HTMLElement): boolean { return true; }
 
     decompress(dump: string): string {
         return (window as any).LZString.decompressFromEncodedURIComponent(dump);

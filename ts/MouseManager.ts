@@ -99,6 +99,7 @@ export class MouseManager {
     private toolbarDragVertical: boolean = false;
     private toolbarDragAnchorX: number = 0;
     private toolbarDragAnchorY: number = 0;
+    private scopeButtonPressed: boolean = false;
 
     constructor(sim: CirSim, ui: any) {
 	this.sim = sim;
@@ -728,6 +729,15 @@ export class MouseManager {
 
     getMouseElm(): CircuitElm | null { return this.mouseElm; }
 
+    getScopeMenuTarget(): CircuitElm | null {
+        const selected = this.ui.elmList.filter((elm: CircuitElm) => elm.isSelected());
+        if (selected.length === 1)
+            return selected[0].canViewInScope() ? selected[0] : null;
+        if (selected.length > 1)
+            return null;
+        return this.mouseElm?.canViewInScope() ? this.mouseElm : null;
+    }
+
     updateNetHighlight(): void {
 	const ce = this.mouseElm;
 	if (ce != null && ce.isRemovableWire() && this.netHighlightKeyHeld) {
@@ -763,9 +773,10 @@ export class MouseManager {
     private mouseIsOverSplitter(x: number, y: number): boolean {
 	if (this.sim.scopeManager.scopeCount === 0)
 	    return false;
+	const splitterY = this.sim.circuitArea.y || this.sim.circuitArea.height;
 	const isOverSplitter =
 	    x >= 0 && x < this.sim.circuitArea.width &&
-	    y >= this.sim.circuitArea.height - 5 && y < this.sim.circuitArea.height;
+	    y >= splitterY - 5 && y < splitterY;
 	if (isOverSplitter !== this.mouseWasOverSplitter) {
 	    if (isOverSplitter)
 		this.sim.setCursorStyle("cursorSplitter");
@@ -1052,6 +1063,8 @@ export class MouseManager {
     }
 
     private onMouseOut(e: MouseEvent): void {
+	if (this.scopeButtonPressed)
+	    this.scopeButtonPressed = false;
 	this.mouseCursorX = -1;
 	// if the mouse leaves the canvas while dragging (e.g. dragged off the edge of the
 	// browser window), we may never get a mouseup event, so end the drag now instead of
@@ -1100,6 +1113,30 @@ export class MouseManager {
 
 	// set mouseElm in case we are on mobile
 	this.mouseSelect(e);
+	const selectedScope = this.sim.scopeManager.scopeSelected;
+	if (selectedScope !== -1 && this.sim.scopeManager.scopes[selectedScope]?.isUndockButtonAt(ex, ey)) {
+	    this.scopeButtonPressed = true;
+	    this.sim.scopeManager.menuScope = selectedScope;
+	    this.sim.scopeManager.menuPlot = -1;
+	    this.menuElm = null;
+	    this.setMouseElm(null);
+	    this.sim.commands.menuPerformed("scopepop", "undock");
+	    this.sim.scopeManager.menuScope = -1;
+	    return;
+	}
+	if (this.mouseElm?.isCloseButtonAt(ex, ey)) {
+	    this.scopeButtonPressed = true;
+	    this.sim.commands.doDelete(true, this.mouseElm);
+	    return;
+	}
+	if (this.mouseElm?.isDockButtonAt(ex, ey)) {
+	    this.scopeButtonPressed = true;
+	    this.menuElm = this.mouseElm;
+	    this.sim.scopeManager.menuScope = -1;
+	    this.setMouseElm(null);
+	    this.sim.commands.menuPerformed("scopepop", "dock");
+	    return;
+	}
 
 	this.mouseDragging = true;
 	this.didSwitch = false;
@@ -1228,6 +1265,11 @@ export class MouseManager {
 	this.sim.menus.unstackAllItem.setEnabled(this.sim.scopeManager.scopeCount > 1 && this.sim.scopeManager.scopes[this.sim.scopeManager.scopeCount - 1].position !== this.sim.scopeManager.scopeCount - 1);
 	this.sim.menus.combineAllItem.setEnabled(this.sim.scopeManager.scopeCount > 1);
 	this.sim.menus.separateAllItem.setEnabled(this.sim.scopeManager.scopeCount > 0);
+	this.sim.menus.clearAllScopesItem.setEnabled(
+	    this.sim.scopeManager.scopeCount + this.sim.scopeManager.countScopeElms() > 0);
+	const scopeTargetAvailable = this.getScopeMenuTarget() != null;
+	this.sim.menus.scopeViewInScopeItem.setEnabled(scopeTargetAvailable);
+	this.sim.menus.scopeViewInFloatScopeItem.setEnabled(scopeTargetAvailable);
 
 	// also update the subcircuit menu if necessary
 	if (MouseManager.lastSubcircuitMenuUpdate !== SubcircuitModel.sequenceNumber)
@@ -1236,6 +1278,10 @@ export class MouseManager {
 
     private onMouseUp(e: MouseEvent): void {
 	e.preventDefault();
+	if (this.scopeButtonPressed) {
+	    this.scopeButtonPressed = false;
+	    return;
+	}
 	// a toolbar drag-and-drop in progress is finished by the document-level handler instead
 	if (this.isToolbarDragPending())
 	    return;
@@ -1278,9 +1324,8 @@ export class MouseManager {
 
 	if (createdElm != null) {
 	    this.editCreatedElm(createdElm);
-	} else if (clickedElm != null && !(e as any).fromTouch && !this.ui.isReadOnly() &&
-		   this.sim.showPropsOnClick) {
-	    // (tapping an element on a touch screen doesn't bring up its properties)
+	} else if (clickedElm != null && this.tempMouseMode === MouseManager.MODE_SELECT &&
+		   !this.ui.isReadOnly() && this.sim.showPropsOnClick) {
 	    // (clicking the element whose properties are already showing dismisses them)
 	    if (CirSim.editDialog != null && CirSim.editDialog.elm === clickedElm)
 		CirSim.editDialog.closeDialog();
@@ -1405,7 +1450,8 @@ export class MouseManager {
 
     setCircuitScale(newScale: number, fromKeyboard: boolean = false): void {
 	const constX = !fromKeyboard ? this.mouseCursorX : this.sim.circuitArea.width  / 2;
-	const constY = !fromKeyboard ? this.mouseCursorY : this.sim.circuitArea.height / 2;
+	const constY = !fromKeyboard ? this.mouseCursorY :
+	    this.sim.circuitArea.y + this.sim.circuitArea.height / 2;
 	const cx = this.inverseTransformX(constX);
 	const cy = this.inverseTransformY(constY);
 	this.sim.transform[0] = this.sim.transform[3] = newScale;

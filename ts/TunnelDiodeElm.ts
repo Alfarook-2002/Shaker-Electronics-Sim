@@ -140,7 +140,7 @@ export class TunnelDiodeElm extends CircuitElm {
     getInfo(arr: string[]): void {
         arr[0] = "tunnel diode";
         arr[1] = "I = " + CircuitElm.getCurrentText(this.getCurrent());
-        arr[2] = "Vd = " + CircuitElm.getVoltageText(this.getVoltageDiff());
+        arr[2] = "V = " + CircuitElm.getVoltageText(this.getVoltageDiff());
         arr[3] = "P = " + CircuitElm.getUnitText(this.getPower(), "W");
     }
 }

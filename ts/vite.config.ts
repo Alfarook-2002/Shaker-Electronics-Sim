@@ -65,6 +65,24 @@ function configureDropbox(): Plugin {
   }
 }
 
+function configureMobileAssets(): Plugin {
+  const editorEnabled = env.VITE_MOBILE_EDITOR_ENABLED !== 'false'
+  return {
+    name: 'configure-mobile-assets',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const head = '  <link rel="stylesheet" href="./mobile/mobile.css">\n'
+        const editorScript = editorEnabled ? '  <script src="./mobile/editor.js"></script>\n' : ''
+        const scripts = `  <script src="./mobile/mobile.js"></script>\n${editorScript}`
+        return html
+          .replace('</head>', `${head}</head>`)
+          .replace('</body>', `${scripts}</body>`)
+      }
+    }
+  }
+}
+
 // After the normal build, copies circuits/, locale/, images/, setuplist.txt,
 // and font/ (the last one nested under ts/public/circuitjs/ already, since
 // it's referenced via hardcoded "circuitjs/font/..." hrefs in circuitjs.html
@@ -84,6 +102,16 @@ function copyPublicAssets(): Plugin {
       }
       fs.cpSync(path.join(publicDir, 'circuitjs', 'font'), path.join(nested, 'font'), { recursive: true })
       fs.cpSync(path.join(publicDir, 'setuplist.txt'), path.join(nested, 'setuplist.txt'))
+      for (const name of ['llm.txt', 'robots.txt', 'sitemap.xml'])
+        fs.copyFileSync(path.join(publicDir, name), path.join(tsRoot, 'dist', name))
+      const mobileSource = path.resolve(tsRoot, '../war/mobile')
+      const mobileTarget = path.join(tsRoot, 'dist', 'mobile')
+      fs.mkdirSync(mobileTarget, { recursive: true })
+      for (const name of ['mobile.css', 'mobile.js', 'layout.json'])
+        fs.copyFileSync(path.join(mobileSource, name), path.join(mobileTarget, name))
+      fs.cpSync(path.join(mobileSource, 'icons'), path.join(mobileTarget, 'icons'), { recursive: true })
+      if (env.VITE_MOBILE_EDITOR_ENABLED !== 'false')
+        fs.copyFileSync(path.join(mobileSource, 'editor.js'), path.join(mobileTarget, 'editor.js'))
       for (const page of ['iframe.html', 'jsinterface.html', 'circuitjs/about.html']) {
         fs.cpSync(path.join(tsRoot, page), path.join(tsRoot, 'dist', page))
       }
@@ -93,7 +121,7 @@ function copyPublicAssets(): Plugin {
 
 export default defineConfig({
   base: './',
-  plugins: [configureDropbox(), serveWarDir(), copyPublicAssets()],
+  plugins: [configureDropbox(), configureMobileAssets(), serveWarDir(), copyPublicAssets()],
   server: {
     port: 5173,
     host: true,

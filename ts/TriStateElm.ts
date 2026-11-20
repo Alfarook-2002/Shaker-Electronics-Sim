@@ -218,7 +218,7 @@ export class TriStateElm extends CircuitElm {
         arr[0] = "tri-state buffer";
         if (this.busWidth > 1) arr[0] += " (" + this.busWidth + ")";
         arr[1] = this.open ? "open" : "closed";
-        arr[2] = "Vd = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
+        arr[2] = "V = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
         arr[3] = "I = " + CircuitElm.getCurrentDText(this.getCurrent());
         arr[4] = "Vc = " + CircuitElm.getVoltageText(this.nodes[this.controlNode()].v);
     }

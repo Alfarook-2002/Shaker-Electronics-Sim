@@ -4,7 +4,7 @@
 
 - Baseline source: official `pfalstad/circuitjs1`, commit `8ac55f22` (`upstream/master`).
 - Working branch: `mobile-ui`. The user's public fork `Alfarook-2002/Elect-mobile` is configured as `origin`; official `pfalstad/circuitjs1` remains `upstream`.
-- The active application is TypeScript + Vite under `ts/`. `README.md` documents `npm ci`, `npm test`, and `npm run build`. The checked-in `gradle/wrapper/gradle-wrapper.properties` pins Gradle 8.7, but there is no `build.gradle`; the Gradle wrapper is not the active web-app build.
+- The active application is TypeScript + Vite under `ts/`. `README.md` documents `npm ci`, `npm test`, and `npm run build`.
 - The primary build input is `ts/circuitjs.html`; `war/circuitjs.html` is the older GWT entry point. `.github/workflows/build.yml` and `deploy-pages.yml` currently target `dev-ts`.
 - Existing UI entry points and command handling are in `ts/UIManager.ts`, `ts/Menus.ts`, `ts/Toolbar.ts`, `ts/CommandManager.ts`, and `ts/JSInterface.ts`.
 - Existing canvas touch support already maps touch to mouse events, supports two-finger pan/zoom, and opens a context menu after a 500 ms long-press. The current mobile CSS uses a 600 px breakpoint and hamburger toggles.

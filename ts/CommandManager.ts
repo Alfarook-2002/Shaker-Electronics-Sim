@@ -43,6 +43,8 @@ import { Scope } from "./Scope";
 import { ScopeElm } from "./ScopeElm";
 import { parseIntStrict } from "./NumberParse";
 import { dropboxEnabled } from "./BuildFlags";
+import { getMobileCommand } from "./MobileCommands";
+import type { CircuitElm } from "./CircuitElm";
 
 export class CommandManager {
 
@@ -51,6 +53,16 @@ export class CommandManager {
 
     constructor(app: CirSim) {
         this.app = app;
+    }
+
+    runMobileCommand(actionId: string): boolean {
+        const command = getMobileCommand(actionId);
+        if (command == null) {
+            console.error(`Rejected unknown mobile action: ${actionId}`);
+            return false;
+        }
+        this.menuPerformed(command.menu, command.item);
+        return true;
     }
 
     menuPerformed(menu: string, item: string): void {
@@ -145,8 +157,13 @@ export class CommandManager {
             this.app.mouse.menuElm = this.app.mouse.getMouseElm();
             menu = "elm";
         }
-        // keep menuElm for the floating scope menu too: it is how scopepop finds its scope
-        if (menu != "elm" && menu != "scopepop")
+        const scopeMenuAction = menu == "scopes" && (item == "viewInScope" || item == "viewInFloatScope");
+        if (scopeMenuAction) {
+            const target = this.app.mouse.getScopeMenuTarget();
+            if (target == null)
+                return;
+            this.app.mouse.menuElm = target;
+        } else if (menu != "elm" && menu != "scopepop")
             this.app.mouse.menuElm = null;
 
         if (item == "cut")
@@ -163,6 +180,10 @@ export class CommandManager {
             this.app.mouse.doSplit(this.app.mouse.menuElm);
         if (item == "selectAll")
             this.app.mouse.doSelectAll();
+        if (menu == "scopes" && item == "clearAllScopes") {
+            this.app.undoManager?.pushUndo();
+            this.app.scopeManager.clearAllScopes();
+        }
 
         if (item == "centercircuit") {
             this.app.undoManager?.pushUndo();
@@ -526,14 +547,14 @@ export class CommandManager {
         this.clipboard = localStorage.getItem("circuitClipboard") ?? "";
     }
 
-    doDelete(pushUndoFlag: boolean): void {
+    doDelete(pushUndoFlag: boolean, elmToDelete?: CircuitElm): void {
         if (pushUndoFlag)
             this.app.undoManager?.pushUndo();
         let hasDeleted = false;
 
         for (let i = this.app.elmList.length - 1; i >= 0; i--) {
             const ce = this.app.elmList[i];
-            if (this.willDelete(ce)) {
+            if (elmToDelete ? ce === elmToDelete : this.willDelete(ce)) {
                 if (ce.isMouseElm())
                     this.app.mouse.setMouseElm(null);
                 ce.delete();

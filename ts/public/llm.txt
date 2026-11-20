@@ -1,0 +1,19 @@
+# Elect-mobile CircuitJS
+
+> A browser-based electronic circuit simulator adapted for desktop and mobile use.
+
+## Application
+
+- Simulator: https://alfarook-2002.github.io/Elect-mobile/circuitjs.html
+- Project repository: https://github.com/Alfarook-2002/Elect-mobile
+- Upstream project: https://github.com/pfalstad/circuitjs1
+- Project overview: https://github.com/Alfarook-2002/Elect-mobile/blob/master/README.md
+
+## What it does
+
+- Build and edit electronic circuits in the browser.
+- Run interactive circuit simulations and inspect voltage, current, and other scope plots.
+- Load built-in example circuits from the simulator's Circuits menu.
+- Export and share circuit designs using the simulator's built-in options.
+
+The simulator requires JavaScript. Circuit designs may be encoded in URL parameters; treat those parameters as user-provided circuit data.

@@ -1,0 +1,901 @@
+#mobileQuickBar[data-editor-mode="true"] {
+    bottom: auto;
+    display: flex;
+    left: auto;
+    position: fixed;
+    right: 8px;
+    top: 8px;
+}
+
+#mobileQuickBar[data-editor-mode="true"] > button:not([data-editor-control]) {
+    display: none;
+}
+
+.layoutPanel,
+body {
+    background: #3e3e3e;
+    color: #f2f2f2;
+    color-scheme: dark;
+}
+
+.mobileLoadingScreen {
+    align-items: center;
+    background: #3e3e3e;
+    color: #f2f2f2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    inset: 0;
+    justify-content: center;
+    opacity: 1;
+    position: fixed;
+    transition: opacity 180ms ease;
+    z-index: 1000;
+}
+
+.mobileLoadingScreen.is-ready {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mobileLoadingScreen__spinner {
+    align-items: center;
+    animation: mobileLoadingSpin 900ms linear infinite;
+    border: 3px solid rgb(255 255 255 / 18%);
+    border-radius: 50%;
+    border-top-color: #16a34a;
+    display: flex;
+    height: 72px;
+    justify-content: center;
+    width: 72px;
+}
+
+.mobileLoadingScreen__icon {
+    height: 44px;
+    object-fit: contain;
+    width: 44px;
+}
+
+.mobileLoadingScreen__label {
+    font: 600 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@font-face {
+    font-family: "Membra";
+    src: url("./fonts/membra.regular.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+:root {
+    --alpha_button: 0.72;
+    --brand-banner-height: clamp(56px, 13.4vw, 112px);
+}
+
+@keyframes mobileLoadingSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mobileLoadingScreen,
+    .mobileLoadingScreen__spinner {
+        animation: none;
+        transition: none;
+    }
+}
+
+.gwt-MenuBar-horizontal {
+    background: #3e3e3e !important;
+    border-color: #5b5b5b !important;
+}
+
+.gwt-MenuBar-horizontal > table {
+    background: #3e3e3e !important;
+}
+
+td.gwt-MenuItem {
+    color: #f2f2f2;
+}
+
+td.gwt-MenuItem.open,
+.hasSubmenu.open {
+    background: #505050 !important;
+}
+
+@media (hover: hover) {
+    td.gwt-MenuItem:hover,
+    .hasSubmenu:hover,
+    .menuItem:hover {
+        background: #505050 !important;
+    }
+}
+
+.menuDropdown,
+.elmContextMenu,
+.scrollValuePopup {
+    background: #454545;
+    border-color: #686868;
+    color: #f2f2f2;
+}
+
+.menuDropdown {
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+}
+
+.menuDropdown .menuDropdown {
+    background: #454545 !important;
+    border-color: #686868;
+    color: #f2f2f2;
+    max-height: calc(100dvh - 124px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}
+
+.menuDropdown > li.hasSubmenu {
+    font-size: 14px;
+    font-weight: 600;
+    min-height: 48px;
+    touch-action: pan-y;
+}
+
+.menuDropdown .menuDropdown > li {
+    color: #f2f2f2;
+}
+
+.submenuArrow {
+    background-color: #e3e3e3;
+    -webkit-mask: url("./icons/play.svg") center / contain no-repeat;
+    mask: url("./icons/play.svg") center / contain no-repeat;
+}
+
+.menuSeparator {
+    background: #686868;
+}
+
+.shortcutHint,
+.menuSubhead {
+    color: #c4c4c4;
+}
+
+.shortcutHint {
+    display: none !important;
+}
+
+.gwt-MenuBar-horizontal {
+    display: block !important;
+    top: var(--brand-banner-height) !important;
+    visibility: visible !important;
+}
+
+.gwt-MenuBar-horizontal::before {
+    background-color: #3e3e3e;
+    background-image: url("./icons/operational-amplifier.png");
+    background-position: left 0.5vw center;
+    background-repeat: no-repeat;
+    background-size: auto 150%;
+    box-sizing: border-box;
+    color: #f2f2f2;
+    content: "SHAKER";
+    font: 400 clamp(18px, 3.8vw, 42px)/1 "Membra", sans-serif;
+    height: var(--brand-banner-height);
+    left: 0;
+    line-height: 1;
+    padding-left: clamp(112px, 20.5vw, 360px);
+    padding-top: calc(var(--brand-banner-height) * 0.035);
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 4;
+    white-space: nowrap;
+}
+
+.gwt-MenuBar-horizontal::after {
+    color: #f2f2f2;
+    content: "Circuit Simulator";
+    font: 400 clamp(18px, 5.3vw, 60px)/1 "Membra", sans-serif;
+    left: clamp(112px, 20.5vw, 360px);
+    pointer-events: none;
+    position: fixed;
+    top: calc(var(--brand-banner-height) * 0.4);
+    white-space: nowrap;
+    z-index: 4;
+}
+
+.toptrigger,
+.toptriggerlabel {
+    display: none !important;
+}
+
+.gwt-MenuBar-horizontal > table {
+    background: #3e3e3e !important;
+    display: block !important;
+    height: 30px;
+    left: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: fixed;
+    scrollbar-width: none;
+    text-align: left;
+    top: var(--brand-banner-height);
+    touch-action: pan-x;
+    white-space: nowrap;
+    width: 100%;
+    z-index: 3;
+}
+
+@media (min-width: 901px) {
+    .gwt-MenuBar-horizontal > table {
+        overflow: visible;
+    }
+}
+
+.gwt-MenuBar-horizontal > table::-webkit-scrollbar {
+    display: none;
+}
+
+.gwt-MenuBar-horizontal > table > tbody,
+.gwt-MenuBar-horizontal > table > tbody > tr {
+    display: flex;
+    width: max-content;
+}
+
+td.gwt-MenuItem {
+    align-items: center;
+    display: flex;
+    height: 30px;
+    padding: 0 9px;
+}
+
+td.gwt-MenuItem > .menuDropdown {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    top: calc(var(--brand-banner-height) + 30px) !important;
+    max-height: calc(100dvh - 124px);
+}
+
+.mainToolbar {
+    background: #3e3e3e !important;
+    border-color: #5b5b5b !important;
+}
+
+.mainToolbar > span:not(:last-child) {
+    color: #f2f2f2;
+}
+
+.toptriggerlabel {
+    background: #3e3e3e;
+    border-radius: 6px;
+    color: #f2f2f2;
+}
+
+.mobileQuickBar {
+    align-items: stretch;
+    background: #3e3e3e;
+    border-top: 1px solid #5b5b5b;
+    box-sizing: border-box;
+    gap: 4px;
+    bottom: 0;
+    display: flex;
+    left: 0;
+    overflow-x: auto;
+    min-height: calc(56px + env(safe-area-inset-bottom));
+    overscroll-behavior-x: contain;
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    position: fixed;
+    right: 0;
+    scrollbar-width: thin;
+    z-index: 20;
+}
+
+.mobileQuickBar button {
+    background: #4a4a4a;
+    border: 1px solid #6b6b6b;
+    border-radius: 6px;
+    color: #f2f2f2;
+    flex: 0 0 auto;
+    font: inherit;
+    font-size: 14px;
+    min-height: 48px;
+    min-width: 56px;
+    padding: 6px 10px;
+    touch-action: manipulation;
+}
+
+.mobileQuickBar button:focus-visible,
+.mobileEditorDialog button:focus-visible,
+.mobileEditorDialog select:focus-visible {
+    outline: 3px solid #1769aa;
+    outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+   .mobileQuickBar button:hover,
+   .mobileQuickBar button:active {
+       background: #5c5c5c;
+   }
+}
+
+.mobileQuickBar__status {
+    align-self: center;
+    color: #9b1c1c;
+    flex: 0 0 auto;
+    font-size: 12px;
+}
+
+.mobileFloatingControls {
+    inset: 0;
+    pointer-events: none;
+    position: fixed;
+    z-index: 2;
+}
+
+.mobileActionControls {
+    align-items: flex-end;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    display: flex;
+    gap: 8px;
+    pointer-events: none;
+    position: fixed;
+    right: 4vw;
+    z-index: 31;
+}
+
+.mobileRunControls {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.mobileActionControls > .mobileControlButton {
+    bottom: auto;
+    margin-bottom: 2px;
+    position: static;
+    right: auto;
+}
+
+.mobileRunControls > .mobileControlButton {
+    bottom: auto;
+    position: static;
+    right: auto;
+}
+
+.mobileControlButton {
+    align-items: center;
+    background: #4b5563;
+    border: 0;
+    border-radius: 50%;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    box-shadow: 0 2px 8px rgb(0 0 0 / 28%);
+    display: flex;
+    height: 56px;
+    justify-content: center;
+    padding: 0;
+    pointer-events: auto;
+    position: fixed;
+    width: 56px;
+    z-index: 31;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobileControlButton__icon {
+    display: block;
+    height: 30px;
+    pointer-events: none;
+    width: 30px;
+}
+
+.mobileControlButton--reset {
+    box-shadow: 0 0 12px rgb(75 85 99 / 55%), 0 2px 8px rgb(0 0 0 / 28%);
+}
+
+.mobileControlButton--run {
+    background: #16a34a;
+    height: 60px;
+    width: 60px;
+}
+
+.mobileControlButton--run.is-paused {
+    background: #16a34a;
+    box-shadow: 0 0 16px rgb(22 163 74 / 72%), 0 3px 10px rgb(0 0 0 / 32%);
+}
+
+.mobileControlButton--run.is-running {
+    background: #dc2626;
+    box-shadow: 0 0 16px rgb(220 38 38 / 72%), 0 3px 10px rgb(0 0 0 / 32%);
+}
+
+.mobileControlButton--run .mobileControlButton__icon {
+    height: 36px;
+    width: 36px;
+}
+
+.mobileControlButton--run.is-paused .mobileControlButton__icon {
+    transform: none;
+    margin-left: 5px !important;
+}
+
+.mobileControlButton--run.is-running .mobileControlButton__icon {
+    transform: none;
+}
+
+.mobileControlButton--drag {
+    background: #2563eb;
+    box-shadow: 0 0 12px rgb(37 99 235 / 65%), 0 2px 8px rgb(0 0 0 / 28%);
+    height: 44px;
+    width: 44px;
+}
+
+.mobileControlButton--drag .mobileControlButton__icon {
+    height: 30px;
+    width: 30px;
+}
+
+.mobileControlButton--drag.is_dragging .mobileControlButton__icon {
+    transform: none;
+    margin-top: 2px !important;
+    margin-left: 2px !important;
+}
+
+.mobileControlButton--drag.is_selecting .mobileControlButton__icon {
+    transform: none;
+    margin-top: 0 !important;
+}
+
+.mobileControlButton:focus-visible {
+    outline: 3px solid #111;
+    outline-offset: 3px;
+}
+
+.mobileSpeedPanel {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    height: 208px;
+    left: 12px;
+    pointer-events: none;
+    position: fixed;
+    width: 40px;
+    z-index: 31;
+}
+
+.mobileSpeedPanel input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    border-radius: 999px;
+    border: 0;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+    box-sizing: border-box;
+    height: 100%;
+    inset: 0;
+    margin: 0;
+    opacity: var(--alpha_button);
+    padding: 24px 0 0;
+    position: absolute;
+    pointer-events: auto;
+    touch-action: none;
+    width: 100%;
+    writing-mode: vertical-lr;
+    direction: rtl;
+    background: linear-gradient(
+        to top,
+        #829aff 0,
+        #829aff var(--speed-fill-height, 29px),
+        #3e3e3e var(--speed-fill-height, 29px),
+        #3e3e3e 100%
+    );
+}
+
+.mobileSpeedPanel input[type="range"]::-webkit-slider-runnable-track {
+    background: transparent;
+    border: 0;
+}
+
+.mobileSpeedPanel input[type="range"]::-moz-range-track,
+.mobileSpeedPanel input[type="range"]::-moz-range-progress {
+    background: transparent;
+    border: 0;
+}
+
+.mobileSpeedPanel input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    height: 0;
+    width: 0;
+}
+
+.mobileSpeedPanel input[type="range"]::-moz-range-thumb {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    height: 0;
+    width: 0;
+}
+
+.mobileSpeedPanel__value {
+    color: #e3e3e3;
+    font: 750 15px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+    left: 50%;
+    position: absolute;
+    pointer-events: none;
+    text-align: center;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+    top: 10px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.mobileSpeedPanel__icon {
+    bottom: 8px;
+    display: block;
+    height: 28px;
+    left: 50%;
+    pointer-events: none;
+    position: absolute;
+    transform: translateX(-50%);
+    width: 28px;
+    z-index: 1;
+}
+
+.mobileEditorDialog {
+    background: #3e3e3e;
+    border: 1px solid #888;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgb(0 0 0 / 35%);
+    box-sizing: border-box;
+    color: #f2f2f2;
+    max-height: min(80vh, 720px);
+    max-width: 560px;
+    overflow: auto;
+    padding: 20px;
+    width: calc(100% - 24px);
+}
+
+.mobileEditorDialog::backdrop {
+    background: rgb(0 0 0 / 45%);
+}
+
+.mobileEditorDialog h2 {
+    margin: 0 0 8px;
+}
+
+.mobileEditorDialog p {
+    line-height: 1.4;
+}
+
+.mobileEditorDialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.mobileEditorDialog button,
+.mobileEditorDialog select {
+    font: inherit;
+    min-height: 44px;
+    padding: 6px 10px;
+}
+
+.mobileEditorDialog__list {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 12px 0;
+    padding: 0;
+}
+
+.mobileEditorDialog__item {
+    align-items: center;
+    border: 1px solid #686868;
+    border-radius: 6px;
+    display: flex;
+    gap: 8px;
+    padding: 6px;
+}
+
+.mobileEditorDialog__item > span {
+    flex: 1;
+    font-weight: 600;
+}
+
+.mobileEditorDialog__status {
+    min-height: 1.4em;
+}
+
+#painel,
+.trigger,
+.triggerLabel {
+    display: none !important;
+}
+
+.canvasWrapper {
+    bottom: calc(58px + env(safe-area-inset-bottom)) !important;
+    right: 0 !important;
+    top: calc(var(--brand-banner-height) + 30px) !important;
+    width: 100% !important;
+}
+
+#mobileQuickBar {
+    display: none !important;
+}
+
+.mainToolbar {
+    align-items: center !important;
+    bottom: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    height: calc(58px + env(safe-area-inset-bottom)) !important;
+    left: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 4px 4px calc(4px + env(safe-area-inset-bottom)) !important;
+    position: fixed !important;
+    right: 0 !important;
+    scrollbar-width: thin;
+    touch-action: pan-x;
+    top: auto !important;
+    z-index: 20;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mainToolbar > span:not(:last-child) {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 36px;
+    height: 44px;
+    justify-content: center;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    width: 36px;
+}
+
+.mainToolbar .toolbarAssetIcon img {
+    display: block;
+    height: 24px;
+    object-fit: contain;
+    pointer-events: none;
+    width: 24px;
+}
+
+.mainToolbar .toolbarDivider {
+    flex: 0 0 12px;
+    height: 28px;
+    margin: 0 2px;
+    object-fit: contain;
+    pointer-events: none;
+    width: 12px;
+}
+
+.toolbarGithubLink {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    flex: 0 0 28px;
+    height: 28px;
+    justify-content: center;
+    position: fixed;
+    right: 8px;
+    padding: 0;
+    top: calc(var(--brand-banner-height) + 1px);
+    width: 28px;
+    z-index: 6;
+}
+
+.toolbarGithubLink img {
+    display: block;
+    height: 24px;
+    pointer-events: none;
+    width: 24px;
+}
+
+.mainToolbar > span:last-child {
+    display: none !important;
+}
+
+.palette-container {
+    background: #454545 !important;
+    border-color: #686868 !important;
+    bottom: calc(58px + env(safe-area-inset-bottom)) !important;
+    max-height: calc(100dvh - 124px);
+    overflow-y: auto;
+    position: fixed !important;
+    top: auto !important;
+    z-index: 40 !important;
+}
+
+.palette-container > span {
+    align-items: center;
+    display: flex;
+    min-height: 44px;
+    min-width: 60px;
+}
+
+.palette-container > span[data-variant-label]::after {
+    color: #f2f2f2;
+    content: attr(data-variant-label);
+    font: 12px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin-left: 8px;
+}
+
+.componentEditDialog {
+    background: #3e3e3e;
+    border: 1px solid rgb(255 255 255 / 58%);
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgb(0 0 0 / 55%);
+    box-sizing: border-box;
+    color: #f2f2f2;
+    max-height: calc(100dvh - 24px);
+    max-width: calc(100vw - 24px);
+    overflow: auto;
+    padding: 12px;
+    width: max-content;
+}
+
+.componentEditDialog__titleBar {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 8px;
+    min-height: 28px;
+    touch-action: none;
+}
+
+.componentEditDialog__titleBar h3 {
+    font-size: 16px;
+    margin: 0;
+}
+
+.componentEditDialog__dragHandle {
+    align-items: center;
+    cursor: move;
+    display: flex;
+    flex: 0 0 32px;
+    height: 32px;
+    justify-content: center;
+    margin-left: 12px;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.componentEditDialog__dragHandle img {
+    height: 26px;
+    pointer-events: none;
+    width: 26px;
+}
+
+.componentEditDialog__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.componentEditDialog button {
+    background: #4a4a4a;
+    border: 1px solid #777;
+    border-radius: 5px;
+    color: #f2f2f2;
+    min-height: 38px;
+    min-width: 72px;
+    padding: 6px 12px;
+}
+
+.componentEditDialog button.componentEditDialog__apply {
+    background: #555;
+}
+
+.componentEditDialog__valueStepper {
+    width: max-content;
+}
+
+.componentEditDialog button.componentEditDialog__valueButton {
+    box-sizing: border-box;
+    flex: 0 0 44px;
+    font-size: 24px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+    width: 44px;
+}
+
+.componentEditDialog__valueInput {
+    box-sizing: border-box;
+    flex: 0 1 180px;
+    font-size: 20px;
+    height: 44px;
+    min-width: 100px;
+    text-align: center;
+    width: clamp(120px, 42vw, 180px) !important;
+}
+
+.componentEditDialog button:active {
+    background: #666;
+}
+
+td.gwt-MenuItem.open > .editMenuDropdown {
+    box-sizing: border-box;
+    display: grid !important;
+    gap: 3px;
+    grid-template-columns: repeat(4, 44px) 1px 44px;
+    left: 8px !important;
+    max-width: calc(100vw - 16px);
+    min-width: 0;
+    padding: 6px;
+    width: max-content;
+}
+
+.editMenuDropdown .menuItem {
+    align-items: center;
+    box-sizing: border-box;
+    display: flex;
+    font-size: 25px;
+    height: 46px;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0;
+    width: 44px;
+}
+
+.editMenuDropdown .menuSeparator:not(.editMenuVerticalSeparator) {
+    grid-column: 1 / -1;
+    height: 1px;
+    margin: 0;
+    min-height: 1px;
+    width: 100%;
+}
+
+.editMenuDropdown .editMenuVerticalSeparator {
+    align-self: center;
+    grid-column: 5;
+    grid-row: 1;
+    height: 32px;
+    margin: 0;
+    min-height: 32px;
+    width: 1px;
+}
+
+.editMenuDropdown .editMenuButton--selectAll {
+    grid-column: 6;
+    grid-row: 1;
+}
+
+.editMenuDropdown .editMenuButton img {
+    display: block;
+    height: 24px;
+    object-fit: contain;
+    width: 24px;
+}
+
+.toptriggerlabel {
+    align-items: center;
+    display: flex;
+    height: 48px;
+    justify-content: center;
+    width: 48px;
+}
+
+td.gwt-MenuItem,
+.menuItem {
+    min-height: 48px;
+}
+
+.topButton,
+.topButton-red {
+    min-height: 48px;
+}

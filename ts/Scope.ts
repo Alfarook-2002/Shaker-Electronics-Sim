@@ -47,6 +47,8 @@ import {
 // also bit positions 25, 26, 27 should not be used because they might be set by old trigger mode code
 
 export class Scope {
+    private static undockIcon: HTMLImageElement | null = null;
+
     static readonly VAL_POWER     = VAL_POWER;
     static readonly VAL_POWER_OLD = VAL_POWER_OLD;
     static readonly VAL_VOLTAGE   = VAL_VOLTAGE;
@@ -633,6 +635,44 @@ export class Scope {
 
     draw(g: Graphics): void { this.drawImpl(g, false); }
 
+    isUndockButtonAt(x: number, y: number): boolean {
+        if (this.position < 0 || this.rect.width < 24 || this.rect.height < 48)
+            return false;
+        const button = new Rectangle(
+            this.rect.x + this.rect.width - 24,
+            this.rect.y + this.rect.height - 24,
+            20,
+            20
+        );
+        return button.contains(x, y);
+    }
+
+    private drawUndockButton(g: Graphics): void {
+        if (this.position < 0 || this.rect.width < 24 || this.rect.height < 48)
+            return;
+
+        const x = this.rect.x + this.rect.width - 24;
+        const y = this.rect.y + this.rect.height - 24;
+        const ctx = g.context;
+        ctx.save();
+        ctx.globalAlpha = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--alpha_button"));
+        ctx.fillStyle = "rgba(35, 35, 35, 0.82)";
+        ctx.fillRect(x, y, 20, 20);
+
+        if (Scope.undockIcon === null) {
+            const icon = document.createElement("img");
+            icon.alt = "";
+            icon.draggable = false;
+            icon.addEventListener("load", () => this.app.repaint());
+            icon.addEventListener("error", () => console.error(`Could not load undock-scope icon: ${icon.src}`));
+            icon.src = "./mobile/icons/undock.svg";
+            Scope.undockIcon = icon;
+        }
+        if (Scope.undockIcon.complete && Scope.undockIcon.naturalWidth > 0)
+            ctx.drawImage(Scope.undockIcon, x, y, 20, 20);
+        ctx.restore();
+    }
+
     // forExport suppresses mouse-driven UI chrome (settings wheel, selection highlight
     // wash, cursor readout) that shouldn't appear in an exported PNG/SVG
     private drawImpl(g: Graphics, forExport: boolean): void {
@@ -647,6 +687,8 @@ export class Scope {
 
         if (this.plot2d.enabled) {
             this.plot2d.draw(g);
+            if (!forExport)
+                this.drawUndockButton(g);
             return;
         }
 
@@ -733,6 +775,8 @@ export class Scope {
 
         if (!forExport)
             this.drawCursor(g);
+        if (!forExport)
+            this.drawUndockButton(g);
 
         if (this.plots[0].ptr > 5 && !this.manualScale) {
             for (i = 0; i !== UNITS_COUNT; i++)

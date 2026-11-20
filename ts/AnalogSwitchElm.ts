@@ -182,7 +182,7 @@ export class AnalogSwitchElm extends CircuitElm {
     getInfo(arr: string[]): void {
         arr[0] = "analog switch";
         arr[1] = this.open ? "open" : "closed";
-        arr[2] = "Vd = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
+        arr[2] = "V = " + CircuitElm.getVoltageDText(this.getVoltageDiff());
         arr[3] = "I = "  + CircuitElm.getCurrentDText(this.getCurrent());
         arr[4] = "Vc = " + CircuitElm.getVoltageText(this.nodes[2].v);
     }

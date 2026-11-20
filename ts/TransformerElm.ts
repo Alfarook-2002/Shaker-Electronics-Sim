@@ -318,8 +318,8 @@ export class TransformerElm extends CircuitElm {
         arr[0] = (this.saturationCurrent > 0) ? "transformer (sat)" : "transformer";
         arr[1] = "L = " + CircuitElm.getUnitText(this.inductance, "H");
         arr[2] = "Ratio = 1:" + this.ratio;
-        arr[3] = "Vd1 = " + CircuitElm.getVoltageText(this.nodes[0].v-this.nodes[2].v);
-        arr[4] = "Vd2 = " + CircuitElm.getVoltageText(this.nodes[1].v-this.nodes[3].v);
+        arr[3] = "V1 = " + CircuitElm.getVoltageText(this.nodes[0].v-this.nodes[2].v);
+        arr[4] = "V2 = " + CircuitElm.getVoltageText(this.nodes[1].v-this.nodes[3].v);
         arr[5] = "I1 = " + CircuitElm.getCurrentText(this.currents[0]);
         arr[6] = "I2 = " + CircuitElm.getCurrentText(this.currents[1]);
         if (this.saturationCurrent > 0) {

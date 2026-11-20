@@ -12,4 +12,11 @@ if [[ ! -d site ]]; then
   exit 1
 fi
 
+if [[ "$flavor" == "release" ]] && {
+  [[ -e site/mobile/editor.js ]] || grep -q 'mobile/editor.js' site/circuitjs.html
+}; then
+  echo "The release site must not contain the developer mobile editor." >&2
+  exit 1
+fi
+
 echo "No $flavor-specific finalization is needed yet."

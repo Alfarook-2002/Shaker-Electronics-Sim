@@ -503,8 +503,7 @@ export class VoltageElm extends CircuitElm {
 	case VoltageElm.WF_NOISE:    arr[0] = "noise gen"; break;
 	}
 	arr[1] = "I = " + VoltageElm.getCurrentText(this.getCurrent());
-	arr[2] = ((this.isRailElm()) ? "V = " : "Vd = ") +
-	    VoltageElm.getVoltageText(this.getVoltageDiff());
+	arr[2] = "V = " + VoltageElm.getVoltageText(this.getVoltageDiff());
 	let i = 3;
 	if (this.waveform != VoltageElm.WF_DC && this.waveform != VoltageElm.WF_VAR && this.waveform != VoltageElm.WF_NOISE) {
 	    arr[i++] = "f = " + VoltageElm.getUnitText(this.frequency, "Hz");
