@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/svg+xml" href="./mobile/icons/page-icon.svg">
+  <title>Information - Shaker Electronics Simulator</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --card-bg: #2d2d2d;
+      --text: #e6e6e6;
+      --text-muted: #a0a0a0;
+      --accent: #4a9eff;
+      --accent-hover: #70b5ff;
+      --border: #404040;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 24px 16px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .info-container {
+      max-width: 680px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    .header img {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    h2 {
+      font-size: 1.15rem;
+      color: #fff;
+      margin: 20px 0 10px;
+    }
+    p, li {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    ul {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    a:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none !important;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn-secondary {
+      background: #3a3a3a;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: #484848;
+    }
+    .footer-note {
+      margin-top: 32px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="info-container">
+    <div class="header">
+      <img src="./mobile/icons/page-icon.svg" alt="App Icon">
+      <div>
+        <h1>Shaker Electronics Simulator</h1>
+        <p>Interactive Circuit Simulator with Mobile UI</p>
+      </div>
+    </div>
+
+    <h2>About This Project</h2>
+    <p>
+      <strong>Shaker Electronics Simulator</strong> is a responsive, touch-friendly electronic circuit simulator designed for both desktop and mobile devices.
+    </p>
+
+    <h2>Features & Highlights</h2>
+    <ul>
+      <li>Responsive layout optimized for smartphones, tablets, and desktops.</li>
+      <li>Real-time schematic analysis and SPICE simulation.</li>
+      <li>Custom components: Silicon, Germanium, and Ideal Diode models.</li>
+      <li>Mobile navigation drawer, quick-access toolbar, and touch gestures.</li>
+      <li>Zero installations required — runs directly in modern web browsers.</li>
+    </ul>
+
+    <h2>Documentation & Help</h2>
+    <p>
+      Detailed guides, tutorials, and circuit examples will be available here soon. Stay tuned for upcoming updates!
+    </p>
+
+    <div class="actions">
+      <a href="circuitjs.html" class="btn btn-primary">⚡ Open Simulator</a>
+      <a href="https://github.com/Alfarook-2002/Shaker-Electronics-Sim" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">GitHub Repository</a>
+    </div>
+
+    <div class="footer-note">
+      <p>Based on CircuitJS1 by Paul Falstad and Iain Sharp. Licensed under the GNU General Public License (GPL).</p>
+    </div>
+  </div>
+</body>
+</html>

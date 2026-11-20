@@ -697,6 +697,7 @@ export class UIManager {
         this.toolbar.element.style.overflow = 'hidden';
         this.layoutPanel.appendChild(this.toolbar.element);
         this.layoutPanel.appendChild(this.toolbar.githubLink);
+        this.layoutPanel.appendChild(this.toolbar.infoLink);
 
         // canvas wrapper: fills space below toolbar, left of sidebar
         this.canvasWrapper = document.createElement('div');

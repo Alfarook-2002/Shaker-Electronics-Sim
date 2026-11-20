@@ -29,6 +29,7 @@ export class Toolbar {
     private activeButton: HTMLElement | null = null;
     resistorButton: HTMLElement;
     githubLink: HTMLAnchorElement;
+    infoLink: HTMLAnchorElement;
 
     // variant popups (from createButtonSet) and the buttons that open them, so
     // opening one can close the others, and tapping/clicking outside any of them
@@ -62,6 +63,18 @@ export class Toolbar {
         githubIcon.alt = "";
         githubIcon.draggable = false;
         this.githubLink.appendChild(githubIcon);
+
+        this.infoLink = document.createElement("a");
+        this.infoLink.className = "toolbarInfoLink";
+        this.infoLink.href = "info.html";
+        this.infoLink.target = "_blank";
+        this.infoLink.rel = "noopener noreferrer";
+        this.infoLink.setAttribute("aria-label", "Information");
+        const infoIcon = document.createElement("img");
+        infoIcon.src = "./mobile/icons/info.svg";
+        infoIcon.alt = "";
+        infoIcon.draggable = false;
+        this.infoLink.appendChild(infoIcon);
         this.element.appendChild(this.createIconButton("./mobile/icons/add.svg", "New Blank Circuit", new MyCommand("file", "newblankcircuit")));
         this.element.appendChild(this.createIconButton("./mobile/icons/search.svg", "Find Component/Command...", new MyCommand("edit", "search")));
         this.element.appendChild(this.createIconButton("./mobile/icons/center.svg", "Center Circuit", new MyCommand("edit", "centercircuit")));

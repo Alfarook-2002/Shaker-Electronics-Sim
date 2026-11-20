@@ -52,7 +52,8 @@
         spinner.className = "mobileLoadingScreen__spinner";
         const icon = document.createElement("img");
         icon.className = "mobileLoadingScreen__icon";
-        icon.src = iconUrl("loading");
+        const loadingIconName = Math.random() < 0.5 ? "loading" : "loading2";
+        icon.src = iconUrl(loadingIconName);
         icon.alt = "";
         icon.draggable = false;
         spinner.appendChild(icon);

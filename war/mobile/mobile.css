@@ -689,7 +689,7 @@ td.gwt-MenuItem > .menuDropdown {
     height: 28px;
     justify-content: center;
     position: fixed;
-    right: 8px;
+    right: 40px;
     padding: 0;
     top: calc(var(--brand-banner-height) + 1px);
     width: 28px;
@@ -697,6 +697,28 @@ td.gwt-MenuItem > .menuDropdown {
 }
 
 .toolbarGithubLink img {
+    display: block;
+    height: 24px;
+    pointer-events: none;
+    width: 24px;
+}
+
+.toolbarInfoLink {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    flex: 0 0 28px;
+    height: 28px;
+    justify-content: center;
+    position: fixed;
+    right: 8px;
+    padding: 0;
+    top: calc(var(--brand-banner-height) + 1px);
+    width: 28px;
+    z-index: 6;
+}
+
+.toolbarInfoLink img {
     display: block;
     height: 24px;
     pointer-events: none;

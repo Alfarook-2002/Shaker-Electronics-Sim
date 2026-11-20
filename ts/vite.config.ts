@@ -121,7 +121,7 @@ function copyPublicAssets(): Plugin {
       }
       if (env.VITE_MOBILE_EDITOR_ENABLED !== 'false')
         fs.copyFileSync(path.join(mobileSource, 'editor.js'), path.join(mobileTarget, 'editor.js'))
-      for (const page of ['iframe.html', 'jsinterface.html', 'circuitjs/about.html']) {
+      for (const page of ['iframe.html', 'jsinterface.html', 'info.html', 'circuitjs/about.html']) {
         fs.cpSync(path.join(tsRoot, page), path.join(tsRoot, 'dist', page))
       }
     }
