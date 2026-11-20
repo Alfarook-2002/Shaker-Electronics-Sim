@@ -16,6 +16,9 @@ const mimeTypes: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.ico': 'image/x-icon',
   '.svg': 'image/svg+xml',
+  '.ttf': 'font/ttf',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
 }
 
 // Serves the legacy war/ pages (index.html, e-*.html, and friends) during
@@ -110,6 +113,12 @@ function copyPublicAssets(): Plugin {
       for (const name of ['mobile.css', 'mobile.js', 'layout.json'])
         fs.copyFileSync(path.join(mobileSource, name), path.join(mobileTarget, name))
       fs.cpSync(path.join(mobileSource, 'icons'), path.join(mobileTarget, 'icons'), { recursive: true })
+      if (fs.existsSync(path.join(mobileSource, 'fonts'))) {
+        fs.cpSync(path.join(mobileSource, 'fonts'), path.join(mobileTarget, 'fonts'), { recursive: true })
+      }
+      if (fs.existsSync(path.join(mobileSource, 'icons', 'page-icon.svg'))) {
+        fs.copyFileSync(path.join(mobileSource, 'icons', 'page-icon.svg'), path.join(tsRoot, 'dist', 'page-icon.svg'))
+      }
       if (env.VITE_MOBILE_EDITOR_ENABLED !== 'false')
         fs.copyFileSync(path.join(mobileSource, 'editor.js'), path.join(mobileTarget, 'editor.js'))
       for (const page of ['iframe.html', 'jsinterface.html', 'circuitjs/about.html']) {
